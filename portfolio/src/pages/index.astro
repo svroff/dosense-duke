@@ -29,7 +29,7 @@ projects.sort((a, b) => b.data.dateUpdated.localeCompare(a.data.dateUpdated));
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {projects.map((project) => (
           <a
-            href={`/projects/${project.data.slug}`}
+            href={`${import.meta.env.BASE_URL}projects/${project.data.slug}`}
             class="group block rounded-xl border border-border bg-surface/30 p-6 hover:border-cyan/50 hover:bg-surface/60 transition-all duration-200"
           >
             <div class="flex items-start justify-between mb-3">
