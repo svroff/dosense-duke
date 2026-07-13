@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  a { color: #e8a33d; text-decoration: none; }
+  a:hover { color: #5aa9aa; }
+  ::selection { background: #5aa9aa; color: #0b0d0e; }
+  .node { animation: nodeWave 4.9s linear infinite; }
+  @keyframes nodeWave {
+    0%, 18%, 100% { border-color: var(--border); box-shadow: none; }
+    5% { border-color: var(--nc); box-shadow: 0 0 0 1px var(--nc), 0 0 26px -6px var(--nc); }
+  }
+  .flow { background-image: repeating-linear-gradient(90deg, var(--muted) 0 6px, transparent 6px 15px); background-size: 15px 100%; animation: flowMove .7s linear infinite; opacity: .45; }
+  @keyframes flowMove { to { background-position: 15px 0; } }
+  .hb { animation: hb 1.9s ease-in-out infinite; }
+  @keyframes hb { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+  .cursor { animation: blink 1.1s step-end infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  .riskbar { animation: riskGlow 2.2s ease-in-out infinite; }
+  @keyframes riskGlow { 0%,100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 14px -2px var(--amber); } }
+  .pcard { transition: border-color .2s, background .2s, transform .2s; }
+  .pcard:hover { border-color: color-mix(in srgb, var(--amber) 55%, transparent); background: var(--surface); transform: translateY(-2px); }
+  .navlink { transition: color .2s; }
+  .toc a { display: block; padding: 6px 0 6px 14px; border-left: 2px solid var(--border); color: var(--muted); font-size: 13px; transition: color .2s, border-color .2s; }
+  .toc a:hover { color: var(--amber); border-left-color: var(--amber); }
+</style>
+</helmet>
+<div style="--bg:#0b0d0e;--surface:#15181a;--surface2:#101315;--border:#2a2f32;--text:#e9e6df;--muted:#7d8790;--amber:#e8a33d;--teal:#5aa9aa;--green:#7bb05f;--yellow:#c79f45;--red:#c85f5a;--track:#20252a;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;line-height:1.7;min-height:100vh;">
+
+  <!-- ============ NAV ============ -->
+  <header style="position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);">
+    <nav style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;">
+      <a href="#home" style="display:flex;align-items:center;gap:10px;color:var(--amber);">
+        <span style="width:11px;height:11px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px -1px var(--amber);"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.04em;">~/pacs-portfolio</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:26px;font-size:14px;">
+        <a class="navlink" href="#home" style="color:var(--muted);">Projectes</a>
+        <a class="navlink" href="#projecte-dosense" style="color:var(--muted);">Dosense</a>
+        <a class="navlink" href="Dosense Monitor.dc.html" style="color:var(--muted);">Monitor en viu ↗</a>
+        <a class="navlink" href="https://github.com/svroff/dosense-duke" target="_blank" rel="noopener" style="color:var(--muted);">GitHub ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============ HOME ============ -->
+  <main id="home" style="max-width:1200px;margin:0 auto;padding:80px 40px 40px;">
+    <section style="max-width:820px;margin-bottom:24px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);margin-bottom:20px;">Portfolio d'infraestructura · Hospital Clínic de Barcelona</div>
+      <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:58px;line-height:1.1;letter-spacing:-.01em;">Infraestructura <span style="color:var(--amber);">PACS</span> clínica</h1>
+      <p style="color:var(--muted);font-size:19px;line-height:1.7;margin-top:22px;">Projectes d'infraestructura d'imatge mèdica documentats de punta a punta. Cada projecte recull l'arquitectura, les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre com es va construir.</p>
+    </section>
+
+    <!-- stats strip -->
+    <section style="display:flex;gap:14px;flex-wrap:wrap;margin:36px 0 48px;">
+      <div style="display:flex;align-items:baseline;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 18px;background:var(--surface2);">
+        <span style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:var(--text);">1</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">projecte actiu</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 18px;background:var(--surface2);">
+        <span style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:var(--text);">3</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">contenidors</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 18px;background:var(--surface2);">
+        <span style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:var(--text);">200</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">estudis CT / dia</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 18px;background:var(--surface2);">
+        <span style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:var(--amber);white-space:nowrap;">Fase 1</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">EuroSafe × Duke</span>
+      </div>
+    </section>
+
+    <!-- featured project -->
+    <section>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Projectes</div>
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:stretch;">
+        <a href="#projecte-dosense" class="pcard" style="display:block;border:1px solid var(--border);border-radius:16px;background:var(--surface2);padding:30px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;">
+            <h2 style="font-family:'Space Grotesk';font-weight:600;font-size:26px;color:var(--text);">Dosense — Monitorització del rendiment de CT</h2>
+            <span style="flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent);"><span class="hb" style="width:7px;height:7px;border-radius:50%;background:var(--amber);"></span>desplegament</span>
+          </div>
+          <p style="color:var(--muted);font-size:16px;line-height:1.7;margin-bottom:22px;">Desplegament local (Docker) del sistema METIS 2 de Duke per analitzar dosi i qualitat d'imatge CT amb l'índex de detectabilitat (d'). Tres contenidors, comunicació per disc, sortida de resultats anonimitzats.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--bg);">Docker</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--bg);">MongoDB</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--bg);">DICOM</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--bg);">dcm4chee</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--bg);">SLES</span>
+          </div>
+          <div style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber);">Veure projecte →</div>
+        </a>
+        <div style="border:1px dashed var(--border);border-radius:16px;background:transparent;padding:30px;display:flex;flex-direction:column;justify-content:center;gap:10px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Espai per a futurs projectes</span>
+          <p style="color:var(--muted);font-size:14px;line-height:1.7;">Cada nou desplegament d'infraestructura PACS s'afegeix aquí amb la seva pròpia fitxa i documentació.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer style="border-top:1px solid var(--border);margin-top:64px;padding:28px 0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">
+      Infraestructura PACS · Hospital Clínic de Barcelona · 2026
+    </footer>
+  </main>
+
+  <!-- ============ PROJECT DETAIL ============ -->
+  <section id="projecte-dosense" style="border-top:1px solid var(--border);background:var(--bg);">
+    <div style="max-width:1200px;margin:0 auto;padding:56px 40px;display:grid;grid-template-columns:240px 1fr;gap:44px;align-items:start;">
+
+      <!-- TOC -->
+      <aside style="position:sticky;top:92px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Contingut</div>
+        <nav class="toc">
+          <a href="#sec-resum">Resum del projecte</a>
+          <a href="#sec-arq">Arquitectura</a>
+          <a href="#sec-vm">Especificacions VM</a>
+          <a href="#sec-flux">Flux de xarxa i DICOM</a>
+          <a href="#sec-discos">Discos i emmagatzematge</a>
+          <a href="#sec-seguretat">Seguretat i RGPD</a>
+          <a href="#sec-qa">Q&amp;A amb Duke</a>
+          <a href="#sec-riscos">Riscos operatius</a>
+          <a href="#sec-passos">Pròxims passos</a>
+        </nav>
+      </aside>
+
+      <!-- ARTICLE -->
+      <article style="min-width:0;">
+        <!-- header -->
+        <header style="margin-bottom:40px;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent);"><span class="hb" style="width:7px;height:7px;border-radius:50%;background:var(--amber);"></span>desplegament</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">Actualitzat: 2026-07-07</span>
+          </div>
+          <h1 style="font-family:'Space Grotesk';font-weight:700;font-size:42px;line-height:1.15;letter-spacing:-.01em;">Dosense — Monitorització del rendiment de CT</h1>
+          <p style="color:var(--muted);font-size:18px;line-height:1.7;margin-top:16px;max-width:760px;">Desplegament del sistema METIS 2 de Duke a l'Hospital Clínic de Barcelona per a l'anàlisi automatitzat de dosi i qualitat d'imatge CT dins de la campanya EuroSafe Imaging.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--surface);">Docker</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--surface);">MongoDB</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--surface);">DICOM</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);border:1px solid var(--border);border-radius:6px;padding:4px 9px;background:var(--surface);">dcm4chee</span>
+          </div>
+        </header>
+
+        <!-- RESUM -->
+        <h2 id="sec-resum" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:18px;scroll-margin-top:92px;">Resum del projecte</h2>
+        <p style="margin-bottom:14px;">Col·laboració entre <strong style="color:var(--text);font-weight:600;">EuroSafe Imaging</strong> (European Society of Radiology) i <strong style="color:var(--text);font-weight:600;">Duke University</strong> per desplegar un sistema automatitzat de monitorització del rendiment de CT en hospitals europeus. El sistema, anomenat <strong style="color:var(--text);font-weight:600;">Dosense</strong> (nom intern a Duke: METIS 2), s'instal·la localment a cada hospital.</p>
+        <p style="margin-bottom:24px;color:var(--muted);">La monitorització tradicional de CT es centra només en la dosi de radiació, però la dosi és un substitut imperfecte de la qualitat diagnòstica. Aquest projecte introdueix l'<strong style="color:var(--text);">índex de detectabilitat (d')</strong> com a mètrica task-based que complementa les mètriques de dosi, permetent identificar estudis amb qualitat insuficient o excessiva respecte als seus paràmetres d'adquisició.</p>
+
+        <div style="border-left:4px solid var(--teal);background:color-mix(in srgb,var(--teal) 6%,transparent);border-radius:0 8px 8px 0;padding:16px 18px;margin-bottom:28px;">
+          <div style="font-family:'Space Grotesk';font-weight:600;color:var(--teal);margin-bottom:4px;display:flex;align-items:center;gap:8px;">ℹ Context HCPB</div>
+          <div style="font-size:15px;color:color-mix(in srgb,var(--text) 92%,transparent);">Volum de referència: <strong style="color:var(--text);">~200 estudis CT/dia · ~1.300/setmana</strong>. Volum moderat segons Duke. HCPB participa en la Fase 1; el tech owner d'IT/DSI és en Sergi.</div>
+        </div>
+
+        <!-- ARQUITECTURA -->
+        <h2 id="sec-arq" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Arquitectura</h2>
+        <p style="margin-bottom:22px;">Desplegament amb tecnologia de contenidors en <strong style="color:var(--text);">tres components</strong>, confirmat després de dues rondes de Q&amp;A amb Duke:</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;">
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:20px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);margin-bottom:8px;">contenidor · 01</div>
+            <div style="font-family:'Space Grotesk';font-weight:600;font-size:17px;margin-bottom:8px;">dcm4chee</div>
+            <p style="font-size:14px;color:var(--muted);line-height:1.6;">Receptor DICOM. Escolta al port 104, accepta el C-STORE de les modalitats i escriu els fitxers a l'arbre de directoris. Imatge proporcionada per Duke.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:20px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);margin-bottom:8px;">contenidor · 02</div>
+            <div style="font-family:'Space Grotesk';font-weight:600;font-size:17px;margin-bottom:8px;">Dosense</div>
+            <p style="font-size:14px;color:var(--muted);line-height:1.6;">Motor d'anàlisi (Python 3, ~2 GB actiu). Vigila el directori, processa els estudis i calcula dosi, dosi d'òrgan i qualitat d'imatge. No escolta a la xarxa.</p>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:20px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);margin-bottom:8px;">extern · 03</div>
+            <div style="font-family:'Space Grotesk';font-weight:600;font-size:17px;margin-bottom:8px;">MongoDB</div>
+            <p style="font-size:14px;color:var(--muted);line-height:1.6;">Base de dades (Community Edition, v6+), externa al contenidor de Dosense. Desa metadades i resultats anonimitzats. Desacoblada del pipeline d'anàlisi.</p>
+          </div>
+        </div>
+
+        <!-- VM SPECS -->
+        <h2 id="sec-vm" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Especificacions VM</h2>
+        <p style="margin-bottom:20px;color:var(--muted);">Punt de partida escalable per al volum de HCPB, amb marge sobre els mínims del proveïdor (3 CPU / 56 GB RAM).</p>
+        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 2.2fr;background:var(--surface2);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Recurs</div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Proposta</div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Justificació</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 2.2fr;font-size:14px;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);">vCPU</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--amber);font-family:'JetBrains Mono',monospace;">6</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--muted);">La CPU és el coll d'ampolla real de l'anàlisi d'IQ; escala linealment.</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);">RAM</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--amber);font-family:'JetBrains Mono',monospace;">64 GB</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Marge sobre el mínim (56 GB) sense sobredimensionar.</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);">Disc total</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--amber);font-family:'JetBrains Mono',monospace;">600–750 GB</div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--muted);">HCPB va a ~1.300/setmana, gairebé el doble de la referència de 500 GB.</div>
+            <div style="padding:14px 16px;">Host OS</div>
+            <div style="padding:14px 16px;color:var(--amber);font-family:'JetBrains Mono',monospace;">SLES</div>
+            <div style="padding:14px 16px;color:var(--muted);">OS estàndard de HCPB per a hosts de VM (a validar en test).</div>
+          </div>
+        </div>
+
+        <!-- FLUX -->
+        <h2 id="sec-flux" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Flux de xarxa i DICOM</h2>
+        <p style="margin-bottom:22px;">Les modalitats CT afegeixen un destí C-STORE addicional cap a la VM, <strong style="color:var(--text);">sense tocar el routing del PACS de producció</strong>. dcm4chee i Dosense es comuniquen per un volum de disc compartit, no per xarxa.</p>
+
+        <!-- animated pipeline -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);">Flux DICOM · d'un CT al resultat</span>
+            <a href="Dosense Monitor.dc.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);">Monitor en viu ↗</a>
+          </div>
+          <div style="display:flex;align-items:stretch;gap:0;">
+            <div class="node" style="--nc:var(--amber);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:0s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">Modalitat CT</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">C-STORE :104</div>
+            </div>
+            <div class="flow" style="flex:1 1 auto;min-width:16px;height:2px;align-self:center;"></div>
+            <div class="node" style="--nc:var(--teal);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:.82s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">dcm4chee</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Receptor DICOM</div>
+            </div>
+            <div class="flow" style="flex:1 1 auto;min-width:16px;height:2px;align-self:center;"></div>
+            <div class="node" style="--nc:var(--yellow);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:1.64s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">Volum compartit</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">/data/dicom_storage</div>
+            </div>
+            <div class="flow" style="flex:1 1 auto;min-width:16px;height:2px;align-self:center;"></div>
+            <div class="node" style="--nc:var(--green);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:2.46s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">Dosense</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">dosi + IQ + d'</div>
+            </div>
+            <div class="flow" style="flex:1 1 auto;min-width:16px;height:2px;align-self:center;"></div>
+            <div class="node" style="--nc:var(--green);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:3.28s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">MongoDB</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Resultats :27017</div>
+            </div>
+            <div class="flow" style="flex:1 1 auto;min-width:16px;height:2px;align-self:center;"></div>
+            <div class="node" style="--nc:var(--teal);flex:0 0 auto;width:150px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px 8px;text-align:center;animation-delay:4.1s;">
+              <div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;">Exportació CSV</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Manual → EuroSafe</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ports table -->
+        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;">
+          <div style="display:grid;grid-template-columns:1.4fr .8fr 2fr;background:var(--surface2);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Enllaç</div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Port</div>
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);">Notes</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr .8fr 2fr;font-size:14px;font-family:'JetBrains Mono',monospace;">
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);">Modalitat → dcm4chee</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--amber);">104</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Únic port d'entrada real (DICOM).</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);">dcm4chee ↔ Dosense</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">cap</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Comparteixen volum; comunicació per fitxers.</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);">Dosense → MongoDB</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--teal);">27017</div>
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Única connexió de xarxa interna.</div>
+            <div style="padding:13px 16px;">Sortida externa</div>
+            <div style="padding:13px 16px;color:var(--muted);">cap</div>
+            <div style="padding:13px 16px;color:var(--muted);">CSV manuals. Zero regles de firewall sortint.</div>
+          </div>
+        </div>
+
+        <div style="border-left:4px solid var(--teal);background:color-mix(in srgb,var(--teal) 6%,transparent);border-radius:0 8px 8px 0;padding:16px 18px;margin-bottom:28px;">
+          <div style="font-family:'Space Grotesk';font-weight:600;color:var(--teal);margin-bottom:4px;">ℹ Comunicació per disc</div>
+          <div style="font-size:15px;color:color-mix(in srgb,var(--text) 92%,transparent);">dcm4chee no envia res per xarxa a Dosense: tots dos munten el mateix bind-mount del host. El "canal" és el filesystem compartit, no un socket, i no consumeix cap port.</div>
+        </div>
+
+        <!-- DISCOS -->
+        <h2 id="sec-discos" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Discos i emmagatzematge</h2>
+        <p style="margin-bottom:22px;color:var(--muted);">La VM es munta amb discs separats (política estàndard de HCPB), mapejats via docker-compose.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;">
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:18px 20px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-family:'Space Grotesk';font-weight:600;">Sistema</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">SO + contenidors</span></div>
+            <div style="height:8px;background:var(--track);border-radius:4px;overflow:hidden;"><div style="width:32%;height:100%;background:var(--green);"></div></div>
+          </div>
+          <div style="border:1px solid color-mix(in srgb,var(--amber) 40%,var(--border));border-radius:12px;background:var(--surface);padding:18px 20px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-family:'Space Grotesk';font-weight:600;">Dades <span style="color:var(--red);font-size:13px;">⚠ risc #1</span></span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">buffer DICOM</span></div>
+            <div class="riskbar" style="height:8px;background:var(--track);border-radius:4px;overflow:hidden;"><div style="width:67%;height:100%;background:var(--amber);"></div></div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:18px 20px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-family:'Space Grotesk';font-weight:600;">BBDD</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">MongoDB extern</span></div>
+            <div style="height:8px;background:var(--track);border-radius:4px;overflow:hidden;"><div style="width:4%;height:100%;background:var(--teal);"></div></div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:18px 20px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-family:'Space Grotesk';font-weight:600;">Logs</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">rotació a 7 dies</span></div>
+            <div style="height:8px;background:var(--track);border-radius:4px;overflow:hidden;"><div style="width:2%;height:100%;background:var(--green);"></div></div>
+          </div>
+        </div>
+        <div style="border-left:4px solid var(--yellow);background:color-mix(in srgb,var(--yellow) 6%,transparent);border-radius:0 8px 8px 0;padding:16px 18px;margin-bottom:28px;">
+          <div style="font-family:'Space Grotesk';font-weight:600;color:var(--yellow);margin-bottom:4px;">⚠ Risc operatiu número 1</div>
+          <div style="font-size:15px;color:color-mix(in srgb,var(--text) 92%,transparent);">El buffer d'entrada no té límit de retenció més enllà de l'espai en disc. Si el processament s'encalla, creix fins a omplir el disc. Monitoritzar de prop des del dia u.</div>
+        </div>
+
+        <!-- SEGURETAT -->
+        <h2 id="sec-seguretat" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Seguretat i RGPD</h2>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+          <li style="display:flex;gap:12px;align-items:flex-start;"><span style="color:var(--green);font-family:'JetBrains Mono',monospace;flex:0 0 auto;margin-top:2px;">✓</span><span>No s'exporta cap PII/PHI; les capçaleres DICOM s'anonimitzen durant el processament.</span></li>
+          <li style="display:flex;gap:12px;align-items:flex-start;"><span style="color:var(--green);font-family:'JetBrains Mono',monospace;flex:0 0 auto;margin-top:2px;">✓</span><span>Sense sortida a internet ni accés remot de Duke; el sistema opera completament air-gapped.</span></li>
+          <li style="display:flex;gap:12px;align-items:flex-start;"><span style="color:var(--green);font-family:'JetBrains Mono',monospace;flex:0 0 auto;margin-top:2px;">✓</span><span>Les imatges DICOM del buffer s'esborren per regla després de processar-se; només cal backup del directori de MongoDB.</span></li>
+          <li style="display:flex;gap:12px;align-items:flex-start;"><span style="color:var(--red);font-family:'JetBrains Mono',monospace;flex:0 0 auto;margin-top:2px;">!</span><span>El canal de sortida dels CSV (Dropbox/Drive) és un flec per al DPO: preferible email controlat a EuroSafe.</span></li>
+        </ul>
+
+        <!-- Q&A -->
+        <h2 id="sec-qa" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Q&amp;A amb Duke</h2>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+          <div style="border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px 18px;">
+            <div style="display:flex;gap:10px;margin-bottom:8px;"><span style="color:var(--teal);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">P</span><span style="font-weight:600;">Dosense és un node DICOM?</span></div>
+            <div style="display:flex;gap:10px;"><span style="color:var(--amber);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">R</span><span style="color:var(--muted);">No. Vigila un directori del filesystem. Duke proporciona una imatge Docker de dcm4chee que actua com a estació receptora DICOM.</span></div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px 18px;">
+            <div style="display:flex;gap:10px;margin-bottom:8px;"><span style="color:var(--teal);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">P</span><span style="font-weight:600;">On va MongoDB?</span></div>
+            <div style="display:flex;gap:10px;"><span style="color:var(--amber);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">R</span><span style="color:var(--muted);">Externa al contenidor de Dosense. A Duke i MD Anderson està al hardware; el contenidor Docker de MongoDB Community també és una opció vàlida.</span></div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px 18px;">
+            <div style="display:flex;gap:10px;margin-bottom:8px;"><span style="color:var(--teal);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">P</span><span style="font-weight:600;">C-STORE multi-destí sense tocar el PACS?</span></div>
+            <div style="display:flex;gap:10px;"><span style="color:var(--amber);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">R</span><span style="color:var(--muted);">És l'enfocament usat a MD Anderson Cancer Center i validat per Duke com a apropiat.</span></div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px 18px;">
+            <div style="display:flex;gap:10px;margin-bottom:8px;"><span style="color:var(--teal);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">P</span><span style="font-weight:600;">Límit del buffer si el servei cau?</span></div>
+            <div style="display:flex;gap:10px;"><span style="color:var(--amber);font-family:'JetBrains Mono',monospace;font-weight:600;flex:0 0 auto;">R</span><span style="color:var(--muted);">Sense límit excepte l'espai en disc disponible.</span></div>
+          </div>
+        </div>
+
+        <!-- RISCOS -->
+        <h2 id="sec-riscos" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Riscos operatius</h2>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+          <div style="display:flex;gap:14px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px;"><span style="font-family:'JetBrains Mono',monospace;color:var(--red);font-weight:600;flex:0 0 auto;">01</span><span>Espai en disc del buffer d'entrada — sense límit més enllà del disc. Monitoritzar de prop.</span></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px;"><span style="font-family:'JetBrains Mono',monospace;color:var(--yellow);font-weight:600;flex:0 0 auto;">02</span><span>Host networking sense definir — impacte en el disseny del firewall; revisar amb seguretat de xarxa.</span></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px;"><span style="font-family:'JetBrains Mono',monospace;color:var(--yellow);font-weight:600;flex:0 0 auto;">03</span><span>SLES no validat formalment per Duke — passar per test abans de producció.</span></div>
+          <div style="display:flex;gap:14px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px;"><span style="font-family:'JetBrains Mono',monospace;color:var(--yellow);font-weight:600;flex:0 0 auto;">04</span><span>Cicle de vida de MongoDB és de l'hospital — EOL i actualitzacions no entren als releases de Duke.</span></div>
+        </div>
+
+        <!-- PASSOS -->
+        <h2 id="sec-passos" style="font-family:'Space Grotesk';font-weight:600;font-size:28px;color:var(--amber);padding-bottom:10px;border-bottom:1px solid var(--border);margin:40px 0 18px;scroll-margin-top:92px;">Pròxims passos</h2>
+        <ol style="list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+          <li style="display:flex;gap:14px;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);flex:0 0 auto;">→</span><span>Decidir on plantar MongoDB (hardware vs contenidor Community) i qui vigila el seu EOL.</span></li>
+          <li style="display:flex;gap:14px;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);flex:0 0 auto;">→</span><span>Contactar amb seguretat de xarxa per l'ús de host networking abans de dissenyar el firewall.</span></li>
+          <li style="display:flex;gap:14px;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);flex:0 0 auto;">→</span><span>Confirmar amb el DPO el canal de sortida dels CSV (email vs Drive).</span></li>
+          <li style="display:flex;gap:14px;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);flex:0 0 auto;">→</span><span>Sol·licitar la VM (6 vCPU / 64 GB / 600–750 GB, 4 discs) i provar els 3 contenidors sobre SLES en test.</span></li>
+          <li style="display:flex;gap:14px;align-items:flex-start;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);flex:0 0 auto;">→</span><span>Configurar el destí C-STORE addicional a les modalitats de CT cap a la VM de Dosense.</span></li>
+        </ol>
+
+        <div style="border-top:1px solid var(--border);margin-top:40px;padding-top:24px;display:flex;justify-content:space-between;align-items:center;">
+          <a href="#home" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">← Tornar als projectes</a>
+          <a href="Dosense Monitor.dc.html" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber);">Obrir monitor en viu ↗</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+</x-dc>
+</body>
+</html>

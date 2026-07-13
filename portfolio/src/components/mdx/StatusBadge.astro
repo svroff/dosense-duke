@@ -10,14 +10,14 @@ const { status } = Astro.props;
 
 const colors: Record<string, string> = {
   planificació: "bg-yellow/15 text-yellow border-yellow/30",
-  desplegament: "bg-cyan/15 text-cyan border-cyan/30",
+  desplegament: "bg-amber/15 text-amber border-amber/30",
   producció: "bg-green/15 text-green border-green/30",
-  completat: "bg-purple/15 text-purple border-purple/30",
+  completat: "bg-teal/15 text-teal border-teal/30",
   arxivat: "bg-text-muted/15 text-text-muted border-text-muted/30",
 };
 ---
 
-<span class={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono border ${colors[status]}`}>
-  <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+<span class={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono border ${colors[status]}`}>
+  <span class="hb w-[7px] h-[7px] rounded-full bg-current"></span>
   {status}
 </span>

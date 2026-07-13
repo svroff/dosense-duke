@@ -1,17 +1,22 @@
 @import "tailwindcss";
 
-/* Tokyo Night Design System */
+/* Monitor Phosphor Design System — warm near-black, single amber accent,
+   teal as secondary. Token names match the hue they hold (see
+   design_handoff_dosense_frontend/README.md) instead of inheriting
+   Tokyo Night's cyan/purple naming. */
 @theme {
-  --color-bg: #1a1b26;
-  --color-surface: #24283b;
-  --color-border: #363b54;
-  --color-text: #c0caf5;
-  --color-text-muted: #565f89;
-  --color-cyan: #7dcfff;
-  --color-purple: #bb9af7;
-  --color-green: #9ece6a;
-  --color-yellow: #e0af68;
-  --color-red: #f7768e;
+  --color-bg: #0b0d0e;
+  --color-surface: #15181a;
+  --color-surface2: #101315;
+  --color-border: #2a2f32;
+  --color-text: #e9e6df;
+  --color-text-muted: #7d8790;
+  --color-amber: #e8a33d;
+  --color-teal: #5aa9aa;
+  --color-green: #7bb05f;
+  --color-yellow: #c79f45;
+  --color-red: #c85f5a;
+  --color-track: #20252a;
 
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-display: "Space Grotesk", system-ui, sans-serif;
@@ -83,17 +88,18 @@ code:not(pre code) {
 .mdx-content h2 {
   font-size: 1.75rem;
   margin-top: 3rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.125rem;
+  padding-bottom: 0.625rem;
   border-bottom: 1px solid var(--color-border);
-  color: var(--color-cyan);
+  color: var(--color-amber);
+  scroll-margin-top: 92px;
 }
 
 .mdx-content h3 {
   font-size: 1.375rem;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
-  color: var(--color-purple);
+  color: var(--color-teal);
 }
 
 .mdx-content h4 {
@@ -129,7 +135,7 @@ code:not(pre code) {
 }
 
 .mdx-content blockquote {
-  border-left: 3px solid var(--color-purple);
+  border-left: 3px solid var(--color-teal);
   padding-left: 1rem;
   margin: 1.5rem 0;
   color: var(--color-text-muted);
@@ -137,13 +143,13 @@ code:not(pre code) {
 }
 
 .mdx-content a {
-  color: var(--color-cyan);
+  color: var(--color-amber);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .mdx-content a:hover {
-  color: var(--color-purple);
+  color: var(--color-teal);
 }
 
 .mdx-content strong {
@@ -153,6 +159,76 @@ code:not(pre code) {
 
 /* Selection */
 ::selection {
-  background-color: var(--color-purple);
+  background-color: var(--color-teal);
   color: var(--color-bg);
+}
+
+/* ============ Decorative pipeline & status animations ============
+   Shared by Pipeline.astro (project detail + monitor) and the monitor's
+   container/log indicators. Each node sets --nc (its accent color) inline;
+   the wave lights up border+glow briefly as it "passes" each node. */
+.node {
+  animation: nodeWave 4.9s linear infinite;
+}
+@keyframes nodeWave {
+  0%, 18%, 100% { border-color: var(--color-border); box-shadow: none; }
+  5% { border-color: var(--nc); box-shadow: 0 0 0 1px var(--nc), 0 0 26px -6px var(--nc); }
+}
+
+.flow {
+  background-image: repeating-linear-gradient(90deg, var(--color-text-muted) 0 6px, transparent 6px 15px);
+  background-size: 15px 100%;
+  animation: flowMove 0.7s linear infinite;
+  opacity: 0.45;
+}
+@keyframes flowMove {
+  to { background-position: 15px 0; }
+}
+
+.hb {
+  animation: hb 1.9s ease-in-out infinite;
+}
+@keyframes hb {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+.cursor {
+  animation: blink 1.1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.riskbar {
+  animation: riskGlow 2.2s ease-in-out infinite;
+}
+@keyframes riskGlow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 14px -2px var(--color-amber); }
+}
+
+/* Project card hover (home grid) */
+.pcard {
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.pcard:hover {
+  border-color: color-mix(in srgb, var(--color-amber) 55%, transparent);
+  background: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+/* Sidebar table-of-contents links */
+.toc a {
+  display: block;
+  padding: 6px 0 6px 14px;
+  border-left: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.toc a:hover {
+  color: var(--color-amber);
+  border-left-color: var(--color-amber);
 }

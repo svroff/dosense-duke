@@ -1,6 +1,7 @@
 ---
 /**
- * Home page — grid of project cards.
+ * Home page — hero, portfolio-wide stats strip, and the project grid
+ * (one featured card per project + a placeholder for what's next).
  */
 import BaseLayout from "../layouts/BaseLayout.astro";
 import StatusBadge from "../components/mdx/StatusBadge.astro";
@@ -9,47 +10,74 @@ import { getCollection } from "astro:content";
 const projects = await getCollection("projects");
 // Sort by dateUpdated descending
 projects.sort((a, b) => b.data.dateUpdated.localeCompare(a.data.dateUpdated));
+
+const stats = [
+  { value: String(projects.length), label: projects.length === 1 ? "projecte actiu" : "projectes actius" },
+  { value: "3", label: "contenidors" },
+  { value: "200", label: "estudis CT / dia" },
+  { value: "Fase 1", label: "EuroSafe × Duke", accent: true },
+];
 ---
 
 <BaseLayout title="Projectes">
-  <div class="mx-auto max-w-6xl px-6 py-16">
+  <div class="mx-auto max-w-[1200px] px-10 pt-20 pb-10">
     <!-- Hero -->
-    <section class="mb-16">
-      <h1 class="font-display text-4xl lg:text-5xl mb-4">
-        Infraestructura <span class="text-cyan">PACS</span> Clínica
+    <section class="max-w-[820px] mb-6">
+      <div class="font-mono text-xs tracking-[0.16em] uppercase text-teal mb-5">
+        Portfolio d'infraestructura · Hospital Clínic de Barcelona
+      </div>
+      <h1 class="font-display font-bold text-[58px] leading-[1.1] tracking-[-0.01em]">
+        Infraestructura <span class="text-amber">PACS</span> clínica
       </h1>
-      <p class="text-text-muted text-lg max-w-2xl leading-relaxed">
-        Portfolio de projectes d'infraestructura d'imatge mèdica. Cada projecte documenta l'arquitectura,
-        les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre com es va construir.
+      <p class="text-text-muted text-lg leading-relaxed mt-5">
+        Projectes d'infraestructura d'imatge mèdica documentats de punta a punta. Cada projecte recull
+        l'arquitectura, les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre
+        com es va construir.
       </p>
+    </section>
+
+    <!-- Stats strip -->
+    <section class="flex flex-wrap gap-3.5 my-9">
+      {stats.map((stat) => (
+        <div class="flex items-baseline gap-2.5 border border-border rounded-[10px] px-4.5 py-3 bg-surface2">
+          <span class={`font-display font-bold text-2xl ${stat.accent ? "text-amber whitespace-nowrap" : "text-text"}`}>
+            {stat.value}
+          </span>
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-text-muted">{stat.label}</span>
+        </div>
+      ))}
     </section>
 
     <!-- Project grid -->
     <section>
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div class="font-mono text-[11px] tracking-[0.16em] uppercase text-text-muted mb-4">Projectes</div>
+      <div class="grid gap-5 items-stretch" style="grid-template-columns: 1.6fr 1fr;">
         {projects.map((project) => (
           <a
             href={`${import.meta.env.BASE_URL}projects/${project.data.slug}`}
-            class="group block rounded-xl border border-border bg-surface/30 p-6 hover:border-cyan/50 hover:bg-surface/60 transition-all duration-200"
+            class="pcard block rounded-2xl border border-border bg-surface2 p-[30px]"
           >
-            <div class="flex items-start justify-between mb-3">
-              <h2 class="font-display text-xl text-text group-hover:text-cyan transition-colors">
-                {project.data.title}
-              </h2>
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <h2 class="font-display font-semibold text-2xl text-text">{project.data.title}</h2>
               <StatusBadge status={project.data.status} />
             </div>
-            <p class="text-sm text-text-muted mb-4 leading-relaxed">
-              {project.data.summary}
-            </p>
-            <div class="flex flex-wrap gap-1.5">
+            <p class="text-text-muted text-base leading-relaxed mb-5.5">{project.data.summary}</p>
+            <div class="flex flex-wrap gap-2">
               {project.data.techStack.map((tech) => (
-                <span class="px-2 py-0.5 text-xs font-mono rounded bg-bg border border-border text-cyan/80">
+                <span class="font-mono text-xs text-teal border border-border rounded-md px-2.5 py-1 bg-bg">
                   {tech}
                 </span>
               ))}
             </div>
+            <div class="mt-6 inline-flex items-center gap-2 font-mono text-[13px] text-amber">Veure projecte →</div>
           </a>
         ))}
+        <div class="rounded-2xl border border-dashed border-border p-[30px] flex flex-col justify-center gap-2.5">
+          <span class="font-mono text-xs tracking-[0.12em] uppercase text-text-muted">Espai per a futurs projectes</span>
+          <p class="text-text-muted text-sm leading-relaxed">
+            Cada nou desplegament d'infraestructura PACS s'afegeix aquí amb la seva pròpia fitxa i documentació.
+          </p>
+        </div>
       </div>
     </section>
   </div>

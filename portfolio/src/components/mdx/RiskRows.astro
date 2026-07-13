@@ -1,0 +1,32 @@
+---
+/**
+ * Numbered operational-risk rows, each its own bordered card. The number's
+ * color signals severity at a glance (red = high, yellow = medium) without
+ * a separate "impact" column.
+ */
+interface Risk {
+  n: string;
+  text: string;
+  severity: "high" | "medium";
+}
+
+interface Props {
+  risks: Risk[];
+}
+
+const { risks } = Astro.props;
+
+const severityClass: Record<Risk["severity"], string> = {
+  high: "text-red",
+  medium: "text-yellow",
+};
+---
+
+<div class="flex flex-col gap-2.5 mb-7">
+  {risks.map((risk) => (
+    <div class="flex gap-3.5 items-start border border-border rounded-[10px] bg-surface px-4 py-3.5">
+      <span class={`font-mono font-semibold flex-none ${severityClass[risk.severity]}`}>{risk.n}</span>
+      <span>{risk.text}</span>
+    </div>
+  ))}
+</div>

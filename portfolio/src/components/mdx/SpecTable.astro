@@ -1,35 +1,50 @@
 ---
 /**
  * Ports/specification table component.
- * Accepts rows as an array of objects with arbitrary keys rendered as columns.
+ * Rows are arrays of cells; a cell is either a plain string or
+ * { text, color } when a specific value should stand out (e.g. the port
+ * number or the recommended VM spec, in amber/teal instead of body text).
  */
+type CellColor = "amber" | "teal" | "muted";
+type Cell = string | { text: string; color?: CellColor };
+
 interface Props {
   title?: string;
   headers: string[];
-  rows: string[][];
+  rows: Cell[][];
 }
 
 const { title, headers, rows } = Astro.props;
+
+// Static class strings so Tailwind's build-time scanner can find them.
+const cellColorClass: Record<CellColor, string> = {
+  amber: "text-amber",
+  teal: "text-teal",
+  muted: "text-text-muted",
+};
+
+const cellText = (cell: Cell) => (typeof cell === "string" ? cell : cell.text);
+const cellClass = (cell: Cell) => (typeof cell === "string" ? "" : cell.color ? cellColorClass[cell.color] : "");
 ---
 
 <div class="my-6 overflow-x-auto">
-  {title && <h4 class="font-mono text-sm text-cyan mb-2">{title}</h4>}
-  <table class="w-full text-sm border border-border rounded-lg overflow-hidden">
+  {title && <h4 class="font-mono text-sm text-amber mb-2">{title}</h4>}
+  <table class="w-full text-sm border border-border rounded-xl overflow-hidden">
     <thead>
-      <tr class="bg-surface">
+      <tr class="bg-surface2">
         {headers.map((h) => (
-          <th class="px-4 py-2 text-left font-mono text-purple border-b border-border">
+          <th class="px-4 py-3 text-left font-mono text-[11px] tracking-[0.1em] uppercase text-text-muted border-b border-border">
             {h}
           </th>
         ))}
       </tr>
     </thead>
     <tbody>
-      {rows.map((row, i) => (
-        <tr class={i % 2 === 0 ? "bg-bg" : "bg-surface/50"}>
+      {rows.map((row) => (
+        <tr>
           {row.map((cell) => (
-            <td class="px-4 py-2 border-b border-border/50 text-text/90">
-              {cell}
+            <td class={`px-4 py-3.5 border-b border-border/70 last:border-b-0 ${cellClass(cell)}`}>
+              {cellText(cell)}
             </td>
           ))}
         </tr>

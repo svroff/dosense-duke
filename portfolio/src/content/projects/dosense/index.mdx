@@ -10,23 +10,37 @@ tags: ["PACS", "DICOM", "CT", "dosi", "qualitat-imatge", "contenidors"]
 
 import Callout from "../../../components/mdx/Callout.astro";
 import SpecTable from "../../../components/mdx/SpecTable.astro";
+import SpecCards from "../../../components/mdx/SpecCards.astro";
+import DiskUsage from "../../../components/mdx/DiskUsage.astro";
+import SecurityList from "../../../components/mdx/SecurityList.astro";
+import RiskRows from "../../../components/mdx/RiskRows.astro";
 import DecisionLog from "../../../components/mdx/DecisionLog.astro";
 import Accordion from "../../../components/mdx/Accordion.astro";
-import DosenseFlowSimulation from "../../../components/islands/DosenseFlowSimulation.tsx";
+import Pipeline from "../../../components/Pipeline.astro";
 
-## Context clínic
+## Resum del projecte
 
-Col·laboració entre EuroSafe Imaging (campanya de la Societat Europea de Radiologia) i Duke University per desplegar un sistema automatitzat de monitorització del rendiment de CT en hospitals europeus. El sistema introdueix la qualitat d'imatge (índex de detectabilitat, d') com a complement a les mètriques tradicionals de dosi, permetent identificar estudis amb qualitat diagnòstica insuficient o excessiva. L'Hospital Clínic de Barcelona participa com a centre de Fase 1 amb ~200 estudis CT/dia.
+Col·laboració entre **EuroSafe Imaging** (European Society of Radiology) i **Duke University** per desplegar un sistema automatitzat de monitorització del rendiment de CT en hospitals europeus. El sistema, anomenat **Dosense** (nom intern a Duke: METIS 2), s'instal·la localment a cada hospital.
+
+La monitorització tradicional de CT es centra només en la dosi de radiació, però la dosi és un substitut imperfecte de la qualitat diagnòstica. Aquest projecte introdueix l'**índex de detectabilitat (d')** com a mètrica task-based que complementa les mètriques de dosi, permetent identificar estudis amb qualitat insuficient o excessiva respecte als seus paràmetres d'adquisició.
+
+<Callout type="info" title="Context HCPB">
+Volum de referència: **~200 estudis CT/dia · ~1.300/setmana**. Volum moderat segons Duke. HCPB participa en la Fase 1; el tech owner d'IT/DSI és en Sergi.
+</Callout>
 
 ---
 
-## Arquitectura del sistema
+## Arquitectura
 
-El desplegament consta de **tres components** en contenidors (Docker/Podman):
+Desplegament amb tecnologia de contenidors en **tres components**, confirmat després de dues rondes de Q&A amb Duke:
 
-1. **dcm4chee** — Receptor DICOM. Escolta el port DICOM, accepta C-STORE de les modalitats i escriu fitxers a l'arbre de directoris esperat. Duke proporciona la imatge.
-2. **Dosense (METIS 2)** — Motor d'anàlisi. Vigila el directori compartit, processa estudis CT (dosi + qualitat d'imatge + dosi d'òrgan) i escriu resultats. Basat en Python 3, imatge Linux stripped-down (~2 GB actiu, ~20.5 GB empremta virtual).
-3. **MongoDB** — Base de dades externa als contenidors d'anàlisi. Community Edition ≥ v6. A Duke i MD Anderson està instal·lada directament al hardware.
+<SpecCards
+  cards={[
+    { eyebrow: "contenidor · 01", eyebrowColor: "teal", title: "dcm4chee", description: "Receptor DICOM. Escolta al port 104, accepta el C-STORE de les modalitats i escriu els fitxers a l'arbre de directoris. Imatge proporcionada per Duke." },
+    { eyebrow: "contenidor · 02", eyebrowColor: "green", title: "Dosense", description: "Motor d'anàlisi (Python 3, ~2 GB actiu). Vigila el directori, processa els estudis i calcula dosi, dosi d'òrgan i qualitat d'imatge. No escolta a la xarxa." },
+    { eyebrow: "extern · 03", eyebrowColor: "green", title: "MongoDB", description: "Base de dades (Community Edition, v6+), externa al contenidor de Dosense. Desa metadades i resultats anonimitzats. Desacoblada del pipeline d'anàlisi." },
+  ]}
+/>
 
 <Callout type="info" title="Punt clau del disseny">
 Dosense **no és un node DICOM**. No escolta a la xarxa. La comunicació entre dcm4chee i Dosense és per **filesystem compartit** (bind-mount), no per socket. Això simplifica enormement el disseny de xarxa.
@@ -34,13 +48,60 @@ Dosense **no és un node DICOM**. No escolta a la xarxa. La comunicació entre d
 
 ---
 
-## Simulació interactiva del flux
+## Especificacions VM
 
-<DosenseFlowSimulation client:visible />
+Punt de partida escalable per al volum de HCPB, amb marge sobre els mínims del proveïdor (3 CPU / 56 GB RAM).
+
+<SpecTable
+  title="Especificacions proposades"
+  headers={["Recurs", "Proposta", "Justificació"]}
+  rows={[
+    ["vCPU", { text: "6", color: "amber" }, "La CPU és el coll d'ampolla real de l'anàlisi d'IQ; escala linealment."],
+    ["RAM", { text: "64 GB", color: "amber" }, "Marge sobre el mínim (56 GB) sense sobredimensionar."],
+    ["Disc total", { text: "600–750 GB", color: "amber" }, "HCPB va a ~1.300/setmana, gairebé el doble de la referència de 500 GB."],
+    ["Host OS", { text: "SLES", color: "amber" }, "OS estàndard de HCPB per a hosts de VM (a validar en test)."],
+  ]}
+/>
+
+**Referència del proveïdor:** ~700 estudis/dia amb 9 CPUs i 96 GB RAM. ~2 minuts per sèrie. Escala linealment amb CPU. HCPB (200/dia) és menys d'un terç del volum de referència alt.
+
+**Throughput màxim testat:** Configuracions de 48 CPUs i 512 GB RAM per a milers d'estudis/dia.
 
 ---
 
-## Flux DICOM complet
+## Flux de xarxa i DICOM
+
+Les modalitats CT afegeixen un destí C-STORE addicional cap a la VM, **sense tocar el routing del PACS de producció**. dcm4chee i Dosense es comuniquen per un volum de disc compartit, no per xarxa.
+
+<Pipeline
+  eyebrow="Flux DICOM · d'un CT al resultat"
+  eyebrowLink={{ href: "monitor", label: "Monitor en viu ↗" }}
+  stagger={0.82}
+  nodes={[
+    { label: "Modalitat CT", sublabel: "C-STORE :104", color: "amber" },
+    { label: "dcm4chee", sublabel: "Receptor DICOM", color: "teal" },
+    { label: "Volum compartit", sublabel: "/data/dicom_storage", color: "yellow" },
+    { label: "Dosense", sublabel: "dosi + IQ + d'", color: "green" },
+    { label: "MongoDB", sublabel: "Resultats :27017", color: "green" },
+    { label: "Exportació CSV", sublabel: "Manual → EuroSafe", color: "teal" },
+  ]}
+/>
+
+<SpecTable
+  headers={["Enllaç", "Port", "Notes"]}
+  rows={[
+    ["Modalitat → dcm4chee", { text: "104", color: "amber" }, "Únic port d'entrada real (DICOM)."],
+    ["dcm4chee ↔ Dosense", { text: "cap", color: "muted" }, "Comparteixen volum; comunicació per fitxers."],
+    ["Dosense → MongoDB", { text: "27017", color: "teal" }, "Única connexió de xarxa interna."],
+    ["Sortida externa", { text: "cap", color: "muted" }, "CSV manuals. Zero regles de firewall sortint."],
+  ]}
+/>
+
+<Callout type="info" title="Comunicació per disc">
+dcm4chee no envia res per xarxa a Dosense: tots dos munten el mateix bind-mount del host. El "canal" és el filesystem compartit, no un socket, i no consumeix cap port.
+</Callout>
+
+<Accordion title="Flux DICOM pas a pas (detall tècnic)">
 
 1. La modalitat CT envia l'estudi via **C-STORE multi-destí** al receptor (dcm4chee) — destí addicional en paral·lel als destins de producció (PACS, Qaelum, Syngo.via, etc.).
 2. dcm4chee escriu els fitxers DICOM al directori vigilat: `/data/dicom_storage/AAAA/MM/DD/Study/Series`.
@@ -53,108 +114,43 @@ Dosense **no és un node DICOM**. No escolta a la xarxa. La comunicació entre d
 9. Després de completar el processament, els fitxers DICOM d'entrada s'eliminen per regla.
 10. El sistema no reté informació d'identificació personal (PII).
 
-<Callout type="warning" title="Risc operatiu #1">
-Si el processament s'encalla, el buffer d'entrada creix sense límit fins a omplir el disc. No hi ha cap mecanisme de backpressure integrat. Monitoritzar l'espai en disc del directori de recepció és crític.
+</Accordion>
+
+---
+
+## Discos i emmagatzematge
+
+La VM es munta amb discs separats (política estàndard de HCPB), mapejats via docker-compose.
+
+<DiskUsage
+  disks={[
+    { label: "Sistema", note: "SO + contenidors", percent: 32, color: "green" },
+    { label: "Dades", note: "buffer DICOM", percent: 67, color: "amber", risk: "risc #1" },
+    { label: "BBDD", note: "MongoDB extern", percent: 4, color: "teal" },
+    { label: "Logs", note: "rotació a 7 dies", percent: 2, color: "green" },
+  ]}
+/>
+
+<Callout type="warning" title="Risc operatiu número 1">
+El buffer d'entrada no té límit de retenció més enllà de l'espai en disc. Si el processament s'encalla, creix fins a omplir el disc. Monitoritzar de prop des del dia u.
 </Callout>
 
 ---
 
-## Mapa de ports i xarxa
+## Seguretat i RGPD
 
-<SpecTable
-  title="Ports de la infraestructura"
-  headers={["Enllaç", "Port", "Notes"]}
-  rows={[
-    ["Modalitat → dcm4chee", "104 (DICOM)", "Únic port d'entrada real. La modalitat ataca la IP de la VM."],
-    ["dcm4chee ↔ Dosense", "Cap", "Comparteixen volum. Comunicació per fitxers a /data/dicom_storage."],
-    ["Dosense → MongoDB", "27017", "Única connexió de xarxa interna real. Depèn d'on es planti MongoDB."],
-    ["Sortida externa (resultats)", "Cap", "CSV surten manualment. Zero regles de firewall sortint."],
+<SecurityList
+  items={[
+    { ok: true, text: "No s'exporta cap PII/PHI; les capçaleres DICOM s'anonimitzen durant el processament." },
+    { ok: true, text: "Sense sortida a internet ni accés remot de Duke; el sistema opera completament air-gapped." },
+    { ok: true, text: "Les imatges DICOM del buffer s'esborren per regla després de processar-se; només cal backup del directori de MongoDB." },
+    { ok: false, text: "El canal de sortida dels CSV (Dropbox/Drive) és un flec per al DPO: preferible email controlat a EuroSafe." },
   ]}
 />
-
-**Enviament multi-destí des de la modalitat:** Les modalitats CT de HCPB ja envien a diversos destins DICOM (PACS producció, Qaelum, Syngo.via). Afegir Dosense és simplement un destí més. Si el receptor Dosense cau, el circuit clínic cap al PACS no es veu afectat. Enfocament validat per Duke (el mateix que MD Anderson Cancer Center).
-
-**Comunicació entre contenidors — per disc, no per xarxa:** dcm4chee no envia res per xarxa a Dosense. Els dos contenidors munten el **mateix volum** del host (bind-mount). dcm4chee l'usa com a carpeta de sortida; Dosense l'usa com a carpeta d'entrada. Es defineix al docker-compose i no consumeix cap port.
-
-**Host networking:** Duke menciona host networking com a requisit. El contenidor comparteix la pila de xarxa completa del host. S'ha de revisar amb l'equip de seguretat de xarxa abans de dissenyar el firewall.
-
----
-
-## Dimensionament de la VM (HCPB)
-
-<SpecTable
-  title="Especificacions proposades"
-  headers={["Recurs", "Proposta", "Justificació"]}
-  rows={[
-    ["vCPU", "6", "Marge sobre el mínim (3); CPU és el coll d'ampolla de l'anàlisi IQ, escala linealment"],
-    ["RAM", "64 GB", "Marge sobre el mínim (56 GB) sense sobredimensionar"],
-    ["Disc total", "600–750 GB", "Referència 500 GB per 700/setmana; HCPB va a 1.300/setmana"],
-    ["Host OS", "SUSE Linux Enterprise Server (SLES)", "OS estàndard de HCPB per a hosts de VM"],
-  ]}
-/>
-
-**Referència del proveïdor:** ~700 estudis/dia amb 9 CPUs i 96 GB RAM. ~2 minuts per sèrie. Escala linealment amb CPU. HCPB (200/dia) és menys d'un terç del volum de referència alt.
-
-**Throughput màxim testat:** Configuracions de 48 CPUs i 512 GB RAM per a milers d'estudis/dia.
-
----
-
-## Política de discs separats
-
-La VM es munta amb discs/punts de muntatge separats (estàndard HCPB), mapejats via docker-compose:
-
-<SpecTable
-  title="Distribució de discs"
-  headers={["Disc", "Contingut", "Notes"]}
-  rows={[
-    ["Sistema", "SO + imatges de contenidors", "Estable, poc creixement"],
-    ["Dades", "Buffer d'entrada DICOM (/data/dicom_storage)", "El que més creix i es buida. Necessita més marge."],
-    ["BBDD", "Volum de dades MongoDB", "~700-800 MB creixement/any a 100 estudis/dia"],
-    ["Logs", "Fitxers de log", "Rotació automàtica, eliminació a 7 dies. ~300 MB/setmana"],
-  ]}
-/>
-
----
-
-## Seguretat i maneig de dades
-
-- **Zero exportació de PII/PHI** — Capçaleres DICOM anonimitzades durant el processament.
-- **Sense accés a internet requerit** — El contenidor opera completament air-gapped (ni llicències, ni telemetria, ni actualitzacions automàtiques). Duke i MD Anderson operen així.
-- **Sense accés remot de Duke** — Assistència inicial via screen-sharing amb IT de l'hospital.
-- **Sortida de resultats 100% manual** — CSV revisats i enviats per l'hospital (email a EuroSafe o Dropbox/Drive). Zero regles de firewall sortint.
-- **Escaneig de vulnerabilitats suportat** — Es poden proporcionar imatges de contenidor refrescades.
-- **Final del pilot** — Eliminar la base de dades MongoDB (externa). No queda dada persistent al contenidor de Dosense.
 
 <Callout type="note" title="Flec per al DPO">
 Pujar agregats (encara que anònims) a Dropbox/Google Drive des de la xarxa de l'hospital pot xocar amb la política del DPO. Preferible email controlat a EuroSafe i deixar el Drive com a pla B validat.
 </Callout>
-
----
-
-## Operacions i monitorització
-
-- **Reinici automàtic** si el contenidor acaba (configurable).
-- **Script de neteja** per estudis parcials orfes cada 24 hores.
-- **Heartbeat** via timestamps als fitxers de log.
-- **Cicle de vida** via docker-compose/podman-compose (up -d, stop).
-- **Releases trimestrals** esperats (fora de pedaços per escaneig de seguretat).
-- **Rollback** suportat — es pot romandre en una versió anterior fins a validar una nova release.
-
-**Monitorització recomanada:**
-- Espai en disc del directori d'entrada DICOM (risc operatiu #1).
-- Creixement de MongoDB.
-- Heartbeat via timestamp als logs (detectar contenidor penjat).
-- Execució correcta de l'script de neteja cada 24h.
-
----
-
-## FAQ tècnic
-
-- **Múltiples escàners alimentant una instància:** Sí, suportat.
-- **Emmagatzematge en xarxa (NAS):** Sí, sempre que Dosense hi pugui accedir via filesystem.
-- **Requisits d'IOPS:** Sense requisits específics.
-- **Mapeig de volums:** Lliure via docker-compose; cada volum es pot mapejar a un disc diferent.
-- **Cicle de vida de MongoDB:** A càrrec de l'hospital. EOL i actualitzacions no entren als releases de Duke. Actualitzar MongoDB no tomba el pipeline d'anàlisi.
 
 ---
 
@@ -197,15 +193,12 @@ Pujar agregats (encara que anònims) a Dropbox/Google Drive des de la xarxa de l
 
 ## Riscos operatius
 
-<SpecTable
-  title="Matriu de riscos"
-  headers={["Risc", "Impacte", "Estat"]}
-  rows={[
-    ["Espai en disc del buffer d'entrada", "Alt — sense límit; pot omplir el disc", "Obert"],
-    ["Host networking sense definir", "Mig — impacte en disseny de firewall", "Pendent seguretat"],
-    ["SLES no validat per Duke", "Baix — només requereix Docker Engine/Compose", "Pendent test"],
-    ["Cicle de vida MongoDB és de l'hospital", "Mig — EOL i actualitzacions no entren als releases", "Obert"],
-    ["Canal sortida manual (Dropbox/Drive)", "Baix — pot xocar amb política DPO", "Preferible email"],
+<RiskRows
+  risks={[
+    { n: "01", text: "Espai en disc del buffer d'entrada — sense límit més enllà del disc. Monitoritzar de prop.", severity: "high" },
+    { n: "02", text: "Host networking sense definir — impacte en el disseny del firewall; revisar amb seguretat de xarxa.", severity: "medium" },
+    { n: "03", text: "SLES no validat formalment per Duke — passar per test abans de producció.", severity: "medium" },
+    { n: "04", text: "Cicle de vida de MongoDB és de l'hospital — EOL i actualitzacions no entren als releases de Duke.", severity: "medium" },
   ]}
 />
 
@@ -213,12 +206,40 @@ Pujar agregats (encara que anònims) a Dropbox/Google Drive des de la xarxa de l
 
 ## Pròxims passos
 
-1. Decidir on plantar MongoDB (hardware vs contenidor Community propi).
-2. Contactar seguretat de xarxa per l'ús de host networking.
-3. Confirmar amb el DPO el canal de sortida dels CSV.
-4. Sol·licitar la VM (6 vCPU / 64 GB / 600–750 GB, 4 discs) a virtualització.
-5. Provar el desplegament dels 3 contenidors sobre SLES en test.
-6. Configurar el destí C-STORE addicional a les modalitats CT.
+<ol className="list-none flex flex-col gap-3 mb-6">
+  <li className="flex gap-3.5 items-start"><span className="font-mono text-teal flex-none">→</span><span>Decidir on plantar MongoDB (hardware vs contenidor Community propi) i qui vigila el seu EOL.</span></li>
+  <li className="flex gap-3.5 items-start"><span className="font-mono text-teal flex-none">→</span><span>Contactar amb seguretat de xarxa per l'ús de host networking abans de dissenyar el firewall.</span></li>
+  <li className="flex gap-3.5 items-start"><span className="font-mono text-teal flex-none">→</span><span>Confirmar amb el DPO el canal de sortida dels CSV (email vs Drive).</span></li>
+  <li className="flex gap-3.5 items-start"><span className="font-mono text-teal flex-none">→</span><span>Sol·licitar la VM (6 vCPU / 64 GB / 600–750 GB, 4 discs) i provar els 3 contenidors sobre SLES en test.</span></li>
+  <li className="flex gap-3.5 items-start"><span className="font-mono text-teal flex-none">→</span><span>Configurar el destí C-STORE addicional a les modalitats de CT cap a la VM de Dosense.</span></li>
+</ol>
+
+---
+
+## Operacions i monitorització
+
+- **Reinici automàtic** si el contenidor acaba (configurable).
+- **Script de neteja** per estudis parcials orfes cada 24 hores.
+- **Heartbeat** via timestamps als fitxers de log.
+- **Cicle de vida** via docker-compose/podman-compose (up -d, stop).
+- **Releases trimestrals** esperats (fora de pedaços per escaneig de seguretat).
+- **Rollback** suportat — es pot romandre en una versió anterior fins a validar una nova release.
+
+**Monitorització recomanada:**
+- Espai en disc del directori d'entrada DICOM (risc operatiu #1).
+- Creixement de MongoDB.
+- Heartbeat via timestamp als logs (detectar contenidor penjat).
+- Execució correcta de l'script de neteja cada 24h.
+
+---
+
+## FAQ tècnic
+
+- **Múltiples escàners alimentant una instància:** Sí, suportat.
+- **Emmagatzematge en xarxa (NAS):** Sí, sempre que Dosense hi pugui accedir via filesystem.
+- **Requisits d'IOPS:** Sense requisits específics.
+- **Mapeig de volums:** Lliure via docker-compose; cada volum es pot mapejar a un disc diferent.
+- **Cicle de vida de MongoDB:** A càrrec de l'hospital. EOL i actualitzacions no entren als releases de Duke. Actualitzar MongoDB no tomba el pipeline d'anàlisi.
 
 ---
 

@@ -1,0 +1,70 @@
+---
+/**
+ * 2x2 disk usage grid with progress bars. A disk can carry a `risk` label
+ * (e.g. "risc #1") which highlights its border and pulses the bar via the
+ * shared .riskbar animation (see global.css) — used for the DICOM input
+ * buffer, which has no retention limit besides available disk space.
+ */
+type BarColor = "amber" | "teal" | "green" | "yellow" | "red";
+
+interface Disk {
+  label: string;
+  note: string;
+  percent: number;
+  color: BarColor;
+  risk?: string;
+}
+
+interface Props {
+  disks: Disk[];
+  /** "cards": bordered 2-col grid (project detail). "compact": bare single-column list (monitor). */
+  variant?: "cards" | "compact";
+}
+
+const { disks, variant = "cards" } = Astro.props;
+
+// Static class strings so Tailwind's build-time scanner can find them.
+const barClass: Record<BarColor, string> = {
+  amber: "bg-amber",
+  teal: "bg-teal",
+  green: "bg-green",
+  yellow: "bg-yellow",
+  red: "bg-red",
+};
+---
+
+{variant === "cards" ? (
+  <div class="grid grid-cols-2 gap-3.5 mb-6">
+    {disks.map((disk) => (
+      <div class={`border rounded-xl bg-surface px-5 py-4.5 ${disk.risk ? "border-amber/40" : "border-border"}`}>
+        <div class="flex justify-between items-baseline mb-2.5">
+          <span class="font-display font-semibold">
+            {disk.label}
+            {disk.risk && <span class="text-red text-[13px] ml-2">⚠ {disk.risk}</span>}
+          </span>
+          <span class="font-mono text-xs text-text-muted">{disk.note}</span>
+        </div>
+        <div class={`h-2 bg-track rounded overflow-hidden ${disk.risk ? "riskbar" : ""}`}>
+          <div class={`h-full ${barClass[disk.color]}`} style={`width:${disk.percent}%`} />
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
+  <div class="flex flex-col gap-4">
+    {disks.map((disk) => (
+      <div>
+        <div class="flex justify-between font-mono text-xs mb-1.5">
+          <span class="text-text">
+            {disk.label}
+            {disk.risk && <span class="text-red ml-2">⚠ {disk.risk}</span>}
+          </span>
+          <span class="text-text-muted">{disk.note}</span>
+        </div>
+        <div class={`h-2 bg-track rounded overflow-hidden ${disk.risk ? "riskbar" : ""}`}>
+          <div class={`h-full ${barClass[disk.color]}`} style={`width:${disk.percent}%`} />
+        </div>
+      </div>
+    ))}
+  </div>
+)}

@@ -1,0 +1,25 @@
+---
+/**
+ * Checklist for security/compliance points. Each item is either satisfied
+ * (green ✓) or an open flag worth the reader's attention (red !).
+ */
+interface Item {
+  ok: boolean;
+  text: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="list-none flex flex-col gap-3 mb-7">
+  {items.map((item) => (
+    <li class="flex gap-3 items-start">
+      <span class={`font-mono mt-0.5 flex-none ${item.ok ? "text-green" : "text-red"}`}>{item.ok ? "✓" : "!"}</span>
+      <span>{item.text}</span>
+    </li>
+  ))}
+</ul>

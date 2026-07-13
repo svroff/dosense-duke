@@ -1,7 +1,7 @@
 ---
 /**
  * Callout/Note box component for MDX content.
- * Variants: info (cyan), warning (yellow), danger (red), success (green), note (purple).
+ * Variants: info (teal), warning (yellow), danger (red), success (green), note (teal).
  */
 interface Props {
   type?: "info" | "warning" | "danger" | "success" | "note";
@@ -11,11 +11,11 @@ interface Props {
 const { type = "info", title } = Astro.props;
 
 const styles: Record<string, { border: string; bg: string; icon: string; titleColor: string }> = {
-  info: { border: "border-cyan", bg: "bg-cyan/5", icon: "ℹ", titleColor: "text-cyan" },
+  info: { border: "border-teal", bg: "bg-teal/5", icon: "ℹ", titleColor: "text-teal" },
   warning: { border: "border-yellow", bg: "bg-yellow/5", icon: "⚠", titleColor: "text-yellow" },
   danger: { border: "border-red", bg: "bg-red/5", icon: "✖", titleColor: "text-red" },
   success: { border: "border-green", bg: "bg-green/5", icon: "✓", titleColor: "text-green" },
-  note: { border: "border-purple", bg: "bg-purple/5", icon: "✎", titleColor: "text-purple" },
+  note: { border: "border-teal", bg: "bg-teal/5", icon: "✎", titleColor: "text-teal" },
 };
 
 const s = styles[type];

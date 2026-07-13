@@ -30,18 +30,21 @@ const { title, description = "Portfolio de projectes d'infraestructura PACS clí
     />
   </head>
   <body class="min-h-screen bg-bg text-text antialiased">
-    <header class="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur-md">
-      <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href={import.meta.env.BASE_URL} class="font-mono text-sm text-cyan hover:text-purple transition-colors">
-          ~/pacs-portfolio
+    <header class="sticky top-0 z-50 border-b border-border bg-bg/82 backdrop-blur-md">
+      <nav class="mx-auto flex max-w-[1200px] items-center justify-between px-10 py-4">
+        <a href={import.meta.env.BASE_URL} class="flex items-center gap-2.5 text-amber">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber shadow-[0_0_14px_-1px_var(--color-amber)]"></span>
+          <span class="font-mono text-sm font-semibold tracking-[0.04em]">~/pacs-portfolio</span>
         </a>
-        <div class="flex items-center gap-4 text-sm">
-          <a href={import.meta.env.BASE_URL} class="text-text-muted hover:text-text transition-colors">Projectes</a>
+        <div class="flex items-center gap-6 text-sm">
+          <a href={import.meta.env.BASE_URL} class="text-text-muted hover:text-amber transition-colors">Projectes</a>
+          <a href={`${import.meta.env.BASE_URL}projects/dosense`} class="text-text-muted hover:text-amber transition-colors">Dosense</a>
+          <a href={`${import.meta.env.BASE_URL}monitor`} class="text-text-muted hover:text-amber transition-colors">Monitor en viu ↗</a>
           <a
-            href="https://github.com"
+            href="https://github.com/svroff/dosense-duke"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-text-muted hover:text-text transition-colors"
+            class="text-text-muted hover:text-amber transition-colors"
             aria-label="GitHub"
           >
             GitHub ↗
@@ -55,6 +58,7 @@ const { title, description = "Portfolio de projectes d'infraestructura PACS clí
     </main>
 
     <footer class="border-t border-border mt-20 py-8 text-center text-xs text-text-muted">
+      <!-- Astro renders this at build time, so the year only updates on the next deploy. -->
       <p>Infraestructura PACS · Hospital Clínic de Barcelona · {new Date().getFullYear()}</p>
     </footer>
   </body>

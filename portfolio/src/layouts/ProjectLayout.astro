@@ -23,16 +23,16 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
 <BaseLayout title={title}>
-  <div class="mx-auto max-w-7xl px-6 py-10 lg:grid lg:grid-cols-[260px_1fr] lg:gap-10">
+  <div class="mx-auto max-w-[1200px] px-10 py-14 lg:grid lg:grid-cols-[240px_1fr] lg:gap-11 border-t border-border">
     <!-- Sidebar TOC -->
     <aside class="hidden lg:block">
-      <div class="sticky top-24">
+      <div class="sticky top-[92px]">
         <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-3">Contingut</p>
         <nav aria-label="Taula de continguts" class="space-y-1 text-sm max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">
           {tocHeadings.map((h) => (
             <a
               href={`#${h.slug}`}
-              class={`block py-1 text-text-muted hover:text-cyan transition-colors border-l-2 border-transparent hover:border-cyan ${h.depth === 3 ? "pl-6" : "pl-3"}`}
+              class={`block py-1 text-text-muted hover:text-amber transition-colors border-l-2 border-transparent hover:border-amber ${h.depth === 3 ? "pl-6" : "pl-3"}`}
               data-toc-link
               data-toc-target={h.slug}
             >
@@ -53,11 +53,11 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
             Actualitzat: {dateUpdated}
           </span>
         </div>
-        <h1 class="font-display text-3xl lg:text-4xl text-text mb-3">{title}</h1>
+        <h1 class="font-display text-[42px] leading-[1.15] tracking-[-0.01em] text-text mb-3">{title}</h1>
         <p class="text-text-muted text-lg leading-relaxed">{summary}</p>
         <div class="flex flex-wrap gap-2 mt-4">
           {techStack.map((tech) => (
-            <span class="px-2 py-0.5 text-xs font-mono rounded bg-surface border border-border text-cyan">
+            <span class="px-2 py-0.5 text-xs font-mono rounded bg-surface border border-border text-amber">
               {tech}
             </span>
           ))}
@@ -75,6 +75,12 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
       <div class="mdx-content">
         <slot />
       </div>
+
+      <!-- Footer nav -->
+      <div class="border-t border-border mt-10 pt-6 flex justify-between items-center">
+        <a href={import.meta.env.BASE_URL} class="font-mono text-[13px] text-text-muted">← Tornar als projectes</a>
+        <a href={`${import.meta.env.BASE_URL}monitor`} class="font-mono text-[13px] text-amber">Obrir monitor en viu ↗</a>
+      </div>
     </article>
   </div>
 
@@ -90,14 +96,17 @@ const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
             if (entry.isIntersecting) {
               links.forEach((link) => {
                 const isActive = link.dataset.tocTarget === entry.target.id;
-                link.classList.toggle("text-cyan", isActive);
-                link.classList.toggle("border-cyan", isActive);
+                link.classList.toggle("text-amber", isActive);
+                link.classList.toggle("border-amber", isActive);
                 link.classList.toggle("text-text-muted", !isActive);
                 link.classList.toggle("border-transparent", !isActive);
               });
             }
           }
         },
+        // Shrinks the observed viewport from the top (sticky header height,
+        // ~80px) and the bottom (60%), so a heading only counts as "active"
+        // once it's near the top of the visible area, not just barely on screen.
         { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
       );
 

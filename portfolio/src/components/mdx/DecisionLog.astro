@@ -1,7 +1,8 @@
 ---
 /**
  * Decision-log / Q&A component.
- * Renders a list of question/answer pairs in a clear, scannable format.
+ * Each entry is its own bordered card, with the question prefixed by a
+ * teal "P" (pregunta) and the answer by an amber "R" (resposta).
  */
 interface Props {
   title: string;
@@ -11,18 +12,21 @@ interface Props {
 const { title, entries } = Astro.props;
 ---
 
-<div class="my-6 rounded-lg border border-border bg-surface/30 overflow-hidden">
-  <div class="px-4 py-3 bg-surface border-b border-border">
-    <h4 class="font-mono text-sm text-yellow flex items-center gap-2">
-      <span>📋</span> {title}
-    </h4>
-  </div>
-  <div class="divide-y divide-border/50">
-    {entries.map((entry, i) => (
-      <div class="px-4 py-3">
-        <p class="font-mono text-xs text-text-muted mb-1">Q{i + 1}</p>
-        <p class="text-sm font-semibold text-cyan mb-2">{entry.q}</p>
-        <p class="text-sm text-text/85 leading-relaxed">{entry.a}</p>
+<div class="mb-2">
+  <h4 class="font-mono text-sm text-text-muted flex items-center gap-2 mb-3">
+    <span>📋</span> {title}
+  </h4>
+  <div class="flex flex-col gap-3">
+    {entries.map((entry) => (
+      <div class="border border-border rounded-[10px] bg-surface px-4.5 py-4">
+        <div class="flex gap-2.5 mb-2">
+          <span class="font-mono font-semibold text-teal flex-none">P</span>
+          <span class="font-semibold">{entry.q}</span>
+        </div>
+        <div class="flex gap-2.5">
+          <span class="font-mono font-semibold text-amber flex-none">R</span>
+          <span class="text-text-muted">{entry.a}</span>
+        </div>
       </div>
     ))}
   </div>

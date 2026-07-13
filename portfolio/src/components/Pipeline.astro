@@ -1,0 +1,52 @@
+---
+/**
+ * Decorative, auto-looping DICOM pipeline diagram. Purely CSS (no client JS):
+ * each node briefly lights up in its own color as a "wave" (see .node/.flow
+ * in global.css) sweeps left to right, staggered by `stagger` seconds/node.
+ * Shared by the project detail page (6 nodes) and the live monitor (7 nodes)
+ * so the two don't drift into two different pipeline implementations.
+ */
+type NodeColor = "amber" | "teal" | "yellow" | "green" | "red";
+
+interface PipelineNode {
+  label: string;
+  sublabel: string;
+  color: NodeColor;
+}
+
+interface Props {
+  eyebrow: string;
+  eyebrowLink?: { href: string; label: string };
+  eyebrowNote?: string;
+  nodes: PipelineNode[];
+  stagger: number;
+}
+
+const { eyebrow, eyebrowLink, eyebrowNote, nodes, stagger } = Astro.props;
+---
+
+<div class="bg-surface border border-border rounded-xl p-[22px] mb-6">
+  <div class="flex items-center justify-between mb-5">
+    <span class="font-mono text-[11px] tracking-[0.14em] uppercase text-text-muted">{eyebrow}</span>
+    {eyebrowLink && (
+      <a href={eyebrowLink.href} class="font-mono text-[11px] text-amber">{eyebrowLink.label}</a>
+    )}
+    {!eyebrowLink && eyebrowNote && (
+      <span class="font-mono text-[11px] text-text-muted">{eyebrowNote}</span>
+    )}
+  </div>
+  <div class="flex items-stretch gap-0">
+    {nodes.map((node, i) => (
+      <>
+        <div
+          class="node flex-none w-[150px] bg-surface2 border-[1.5px] border-border rounded-[10px] px-2 py-3.5 text-center"
+          style={{ "--nc": `var(--color-${node.color})`, "animation-delay": `${(i * stagger).toFixed(2)}s` }}
+        >
+          <div class="font-display font-semibold text-sm text-text">{node.label}</div>
+          <div class="font-mono text-[10px] text-text-muted mt-1">{node.sublabel}</div>
+        </div>
+        {i < nodes.length - 1 && <div class="flow flex-1 min-w-[16px] h-0.5 self-center" />}
+      </>
+    ))}
+  </div>
+</div>

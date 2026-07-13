@@ -1,0 +1,41 @@
+---
+/**
+ * Small card grid for enumerating system components (e.g. the 3 containers
+ * of an architecture). Each card gets a colored mono eyebrow ("contenidor · 01")
+ * to signal grouping/order without a heavier table.
+ */
+type EyebrowColor = "teal" | "green" | "amber" | "yellow" | "red";
+
+interface Card {
+  eyebrow: string;
+  eyebrowColor: EyebrowColor;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  cards: Card[];
+}
+
+const { cards } = Astro.props;
+
+// Static class strings (not `text-${color}` interpolation) so Tailwind's
+// build-time scanner can actually find and generate these utility classes.
+const eyebrowClass: Record<EyebrowColor, string> = {
+  teal: "text-teal",
+  green: "text-green",
+  amber: "text-amber",
+  yellow: "text-yellow",
+  red: "text-red",
+};
+---
+
+<div class="grid gap-3.5 mb-7" style={`grid-template-columns: repeat(${cards.length}, 1fr);`}>
+  {cards.map((card) => (
+    <div class="border border-border rounded-xl bg-surface p-5">
+      <div class={`font-mono text-[11px] mb-2 ${eyebrowClass[card.eyebrowColor]}`}>{card.eyebrow}</div>
+      <div class="font-display font-semibold text-[17px] mb-2">{card.title}</div>
+      <p class="text-sm text-text-muted leading-relaxed">{card.description}</p>
+    </div>
+  ))}
+</div>
