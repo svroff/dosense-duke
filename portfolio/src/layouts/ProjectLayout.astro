@@ -1,0 +1,111 @@
+---
+/**
+ * Layout for individual project detail pages.
+ * Renders a sidebar TOC with scroll-spy, project metadata, and the MDX content body.
+ */
+import BaseLayout from "./BaseLayout.astro";
+import StatusBadge from "../components/mdx/StatusBadge.astro";
+
+interface Props {
+  title: string;
+  summary: string;
+  status: "planificació" | "desplegament" | "producció" | "completat" | "arxivat";
+  dateUpdated: string;
+  techStack: string[];
+  tags: string[];
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { title, summary, status, dateUpdated, techStack, tags, headings } = Astro.props;
+
+// Filter headings to h2 and h3 for the sidebar TOC
+const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<BaseLayout title={title}>
+  <div class="mx-auto max-w-7xl px-6 py-10 lg:grid lg:grid-cols-[260px_1fr] lg:gap-10">
+    <!-- Sidebar TOC -->
+    <aside class="hidden lg:block">
+      <div class="sticky top-24">
+        <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-3">Contingut</p>
+        <nav aria-label="Taula de continguts" class="space-y-1 text-sm max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">
+          {tocHeadings.map((h) => (
+            <a
+              href={`#${h.slug}`}
+              class={`block py-1 text-text-muted hover:text-cyan transition-colors border-l-2 border-transparent hover:border-cyan ${h.depth === 3 ? "pl-6" : "pl-3"}`}
+              data-toc-link
+              data-toc-target={h.slug}
+            >
+              {h.text}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <article class="min-w-0">
+      <!-- Header -->
+      <header class="mb-10">
+        <div class="flex items-center gap-3 mb-3">
+          <StatusBadge status={status} />
+          <span class="text-xs text-text-muted font-mono">
+            Actualitzat: {dateUpdated}
+          </span>
+        </div>
+        <h1 class="font-display text-3xl lg:text-4xl text-text mb-3">{title}</h1>
+        <p class="text-text-muted text-lg leading-relaxed">{summary}</p>
+        <div class="flex flex-wrap gap-2 mt-4">
+          {techStack.map((tech) => (
+            <span class="px-2 py-0.5 text-xs font-mono rounded bg-surface border border-border text-cyan">
+              {tech}
+            </span>
+          ))}
+        </div>
+        {tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-2">
+            {tags.map((tag) => (
+              <span class="text-xs text-text-muted">#{tag}</span>
+            ))}
+          </div>
+        )}
+      </header>
+
+      <!-- MDX body -->
+      <div class="mdx-content">
+        <slot />
+      </div>
+    </article>
+  </div>
+
+  <!-- Scroll-spy script (zero-framework, vanilla IntersectionObserver) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const links = document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]");
+      if (!links.length) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              links.forEach((link) => {
+                const isActive = link.dataset.tocTarget === entry.target.id;
+                link.classList.toggle("text-cyan", isActive);
+                link.classList.toggle("border-cyan", isActive);
+                link.classList.toggle("text-text-muted", !isActive);
+                link.classList.toggle("border-transparent", !isActive);
+              });
+            }
+          }
+        },
+        { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+      );
+
+      // Observe all heading targets
+      links.forEach((link) => {
+        const target = document.getElementById(link.dataset.tocTarget || "");
+        if (target) observer.observe(target);
+      });
+    });
+  </script>
+</BaseLayout>

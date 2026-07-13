@@ -1,0 +1,39 @@
+---
+/**
+ * Ports/specification table component.
+ * Accepts rows as an array of objects with arbitrary keys rendered as columns.
+ */
+interface Props {
+  title?: string;
+  headers: string[];
+  rows: string[][];
+}
+
+const { title, headers, rows } = Astro.props;
+---
+
+<div class="my-6 overflow-x-auto">
+  {title && <h4 class="font-mono text-sm text-cyan mb-2">{title}</h4>}
+  <table class="w-full text-sm border border-border rounded-lg overflow-hidden">
+    <thead>
+      <tr class="bg-surface">
+        {headers.map((h) => (
+          <th class="px-4 py-2 text-left font-mono text-purple border-b border-border">
+            {h}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row, i) => (
+        <tr class={i % 2 === 0 ? "bg-bg" : "bg-surface/50"}>
+          {row.map((cell) => (
+            <td class="px-4 py-2 border-b border-border/50 text-text/90">
+              {cell}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

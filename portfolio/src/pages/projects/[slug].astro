@@ -1,0 +1,31 @@
+---
+/**
+ * Dynamic route that renders each project MDX file.
+ * Components are imported directly inside the MDX files themselves.
+ */
+import { getCollection, render } from "astro:content";
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { slug: project.data.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content, headings } = await render(project);
+---
+
+<ProjectLayout
+  title={project.data.title}
+  summary={project.data.summary}
+  status={project.data.status}
+  dateUpdated={project.data.dateUpdated}
+  techStack={project.data.techStack}
+  tags={project.data.tags}
+  headings={headings}
+>
+  <Content />
+</ProjectLayout>

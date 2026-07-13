@@ -1,0 +1,56 @@
+---
+/**
+ * Home page — grid of project cards.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import StatusBadge from "../components/mdx/StatusBadge.astro";
+import { getCollection } from "astro:content";
+
+const projects = await getCollection("projects");
+// Sort by dateUpdated descending
+projects.sort((a, b) => b.data.dateUpdated.localeCompare(a.data.dateUpdated));
+---
+
+<BaseLayout title="Projectes">
+  <div class="mx-auto max-w-6xl px-6 py-16">
+    <!-- Hero -->
+    <section class="mb-16">
+      <h1 class="font-display text-4xl lg:text-5xl mb-4">
+        Infraestructura <span class="text-cyan">PACS</span> Clínica
+      </h1>
+      <p class="text-text-muted text-lg max-w-2xl leading-relaxed">
+        Portfolio de projectes d'infraestructura d'imatge mèdica. Cada projecte documenta l'arquitectura,
+        les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre com es va construir.
+      </p>
+    </section>
+
+    <!-- Project grid -->
+    <section>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+        {projects.map((project) => (
+          <a
+            href={`/projects/${project.data.slug}`}
+            class="group block rounded-xl border border-border bg-surface/30 p-6 hover:border-cyan/50 hover:bg-surface/60 transition-all duration-200"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <h2 class="font-display text-xl text-text group-hover:text-cyan transition-colors">
+                {project.data.title}
+              </h2>
+              <StatusBadge status={project.data.status} />
+            </div>
+            <p class="text-sm text-text-muted mb-4 leading-relaxed">
+              {project.data.summary}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {project.data.techStack.map((tech) => (
+                <span class="px-2 py-0.5 text-xs font-mono rounded bg-bg border border-border text-cyan/80">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,261 @@
+---
+title: "Dosense — Monitorització del Rendiment CT"
+slug: "dosense"
+summary: "Desplegament del sistema Dosense (Duke University / EuroSafe Imaging) per a monitorització automatitzada de dosi i qualitat d'imatge CT a l'Hospital Clínic de Barcelona."
+status: "desplegament"
+dateUpdated: "2026-07-07"
+techStack: ["Docker/Podman", "dcm4chee", "MongoDB", "DICOM C-STORE", "Python", "SLES"]
+tags: ["PACS", "DICOM", "CT", "dosi", "qualitat-imatge", "contenidors"]
+---
+
+import Callout from "../../../components/mdx/Callout.astro";
+import SpecTable from "../../../components/mdx/SpecTable.astro";
+import DecisionLog from "../../../components/mdx/DecisionLog.astro";
+import Accordion from "../../../components/mdx/Accordion.astro";
+import DosenseFlowSimulation from "../../../components/islands/DosenseFlowSimulation.tsx";
+
+## Context clínic
+
+Col·laboració entre EuroSafe Imaging (campanya de la Societat Europea de Radiologia) i Duke University per desplegar un sistema automatitzat de monitorització del rendiment de CT en hospitals europeus. El sistema introdueix la qualitat d'imatge (índex de detectabilitat, d') com a complement a les mètriques tradicionals de dosi, permetent identificar estudis amb qualitat diagnòstica insuficient o excessiva. L'Hospital Clínic de Barcelona participa com a centre de Fase 1 amb ~200 estudis CT/dia.
+
+---
+
+## Arquitectura del sistema
+
+El desplegament consta de **tres components** en contenidors (Docker/Podman):
+
+1. **dcm4chee** — Receptor DICOM. Escolta el port DICOM, accepta C-STORE de les modalitats i escriu fitxers a l'arbre de directoris esperat. Duke proporciona la imatge.
+2. **Dosense (METIS 2)** — Motor d'anàlisi. Vigila el directori compartit, processa estudis CT (dosi + qualitat d'imatge + dosi d'òrgan) i escriu resultats. Basat en Python 3, imatge Linux stripped-down (~2 GB actiu, ~20.5 GB empremta virtual).
+3. **MongoDB** — Base de dades externa als contenidors d'anàlisi. Community Edition ≥ v6. A Duke i MD Anderson està instal·lada directament al hardware.
+
+<Callout type="info" title="Punt clau del disseny">
+Dosense **no és un node DICOM**. No escolta a la xarxa. La comunicació entre dcm4chee i Dosense és per **filesystem compartit** (bind-mount), no per socket. Això simplifica enormement el disseny de xarxa.
+</Callout>
+
+---
+
+## Simulació interactiva del flux
+
+<DosenseFlowSimulation client:visible />
+
+---
+
+## Flux DICOM complet
+
+1. La modalitat CT envia l'estudi via **C-STORE multi-destí** al receptor (dcm4chee) — destí addicional en paral·lel als destins de producció (PACS, Qaelum, Syngo.via, etc.).
+2. dcm4chee escriu els fitxers DICOM al directori vigilat: `/data/dicom_storage/AAAA/MM/DD/Study/Series`.
+3. Dosense monitoritza el directori d'entrada per a estudis CT nous.
+4. Tots els fitxers DICOM s'escanegen i les metadades s'emmagatzemen a MongoDB.
+5. Les sèries CT s'identifiquen i organitzen.
+6. Es calcula la informació de dosi (CTDIvol, DLP, SSDE, dosi d'òrgan via matching XCAT).
+7. S'avalua la qualitat d'imatge (global noise level, resolution index, d').
+8. Es calcula la dosi d'òrgan (patient-informed, matching a phantoms XCAT).
+9. Després de completar el processament, els fitxers DICOM d'entrada s'eliminen per regla.
+10. El sistema no reté informació d'identificació personal (PII).
+
+<Callout type="warning" title="Risc operatiu #1">
+Si el processament s'encalla, el buffer d'entrada creix sense límit fins a omplir el disc. No hi ha cap mecanisme de backpressure integrat. Monitoritzar l'espai en disc del directori de recepció és crític.
+</Callout>
+
+---
+
+## Mapa de ports i xarxa
+
+<SpecTable
+  title="Ports de la infraestructura"
+  headers={["Enllaç", "Port", "Notes"]}
+  rows={[
+    ["Modalitat → dcm4chee", "104 (DICOM)", "Únic port d'entrada real. La modalitat ataca la IP de la VM."],
+    ["dcm4chee ↔ Dosense", "Cap", "Comparteixen volum. Comunicació per fitxers a /data/dicom_storage."],
+    ["Dosense → MongoDB", "27017", "Única connexió de xarxa interna real. Depèn d'on es planti MongoDB."],
+    ["Sortida externa (resultats)", "Cap", "CSV surten manualment. Zero regles de firewall sortint."],
+  ]}
+/>
+
+**Enviament multi-destí des de la modalitat:** Les modalitats CT de HCPB ja envien a diversos destins DICOM (PACS producció, Qaelum, Syngo.via). Afegir Dosense és simplement un destí més. Si el receptor Dosense cau, el circuit clínic cap al PACS no es veu afectat. Enfocament validat per Duke (el mateix que MD Anderson Cancer Center).
+
+**Comunicació entre contenidors — per disc, no per xarxa:** dcm4chee no envia res per xarxa a Dosense. Els dos contenidors munten el **mateix volum** del host (bind-mount). dcm4chee l'usa com a carpeta de sortida; Dosense l'usa com a carpeta d'entrada. Es defineix al docker-compose i no consumeix cap port.
+
+**Host networking:** Duke menciona host networking com a requisit. El contenidor comparteix la pila de xarxa completa del host. S'ha de revisar amb l'equip de seguretat de xarxa abans de dissenyar el firewall.
+
+---
+
+## Dimensionament de la VM (HCPB)
+
+<SpecTable
+  title="Especificacions proposades"
+  headers={["Recurs", "Proposta", "Justificació"]}
+  rows={[
+    ["vCPU", "6", "Marge sobre el mínim (3); CPU és el coll d'ampolla de l'anàlisi IQ, escala linealment"],
+    ["RAM", "64 GB", "Marge sobre el mínim (56 GB) sense sobredimensionar"],
+    ["Disc total", "600–750 GB", "Referència 500 GB per 700/setmana; HCPB va a 1.300/setmana"],
+    ["Host OS", "SUSE Linux Enterprise Server (SLES)", "OS estàndard de HCPB per a hosts de VM"],
+  ]}
+/>
+
+**Referència del proveïdor:** ~700 estudis/dia amb 9 CPUs i 96 GB RAM. ~2 minuts per sèrie. Escala linealment amb CPU. HCPB (200/dia) és menys d'un terç del volum de referència alt.
+
+**Throughput màxim testat:** Configuracions de 48 CPUs i 512 GB RAM per a milers d'estudis/dia.
+
+---
+
+## Política de discs separats
+
+La VM es munta amb discs/punts de muntatge separats (estàndard HCPB), mapejats via docker-compose:
+
+<SpecTable
+  title="Distribució de discs"
+  headers={["Disc", "Contingut", "Notes"]}
+  rows={[
+    ["Sistema", "SO + imatges de contenidors", "Estable, poc creixement"],
+    ["Dades", "Buffer d'entrada DICOM (/data/dicom_storage)", "El que més creix i es buida. Necessita més marge."],
+    ["BBDD", "Volum de dades MongoDB", "~700-800 MB creixement/any a 100 estudis/dia"],
+    ["Logs", "Fitxers de log", "Rotació automàtica, eliminació a 7 dies. ~300 MB/setmana"],
+  ]}
+/>
+
+---
+
+## Seguretat i maneig de dades
+
+- **Zero exportació de PII/PHI** — Capçaleres DICOM anonimitzades durant el processament.
+- **Sense accés a internet requerit** — El contenidor opera completament air-gapped (ni llicències, ni telemetria, ni actualitzacions automàtiques). Duke i MD Anderson operen així.
+- **Sense accés remot de Duke** — Assistència inicial via screen-sharing amb IT de l'hospital.
+- **Sortida de resultats 100% manual** — CSV revisats i enviats per l'hospital (email a EuroSafe o Dropbox/Drive). Zero regles de firewall sortint.
+- **Escaneig de vulnerabilitats suportat** — Es poden proporcionar imatges de contenidor refrescades.
+- **Final del pilot** — Eliminar la base de dades MongoDB (externa). No queda dada persistent al contenidor de Dosense.
+
+<Callout type="note" title="Flec per al DPO">
+Pujar agregats (encara que anònims) a Dropbox/Google Drive des de la xarxa de l'hospital pot xocar amb la política del DPO. Preferible email controlat a EuroSafe i deixar el Drive com a pla B validat.
+</Callout>
+
+---
+
+## Operacions i monitorització
+
+- **Reinici automàtic** si el contenidor acaba (configurable).
+- **Script de neteja** per estudis parcials orfes cada 24 hores.
+- **Heartbeat** via timestamps als fitxers de log.
+- **Cicle de vida** via docker-compose/podman-compose (up -d, stop).
+- **Releases trimestrals** esperats (fora de pedaços per escaneig de seguretat).
+- **Rollback** suportat — es pot romandre en una versió anterior fins a validar una nova release.
+
+**Monitorització recomanada:**
+- Espai en disc del directori d'entrada DICOM (risc operatiu #1).
+- Creixement de MongoDB.
+- Heartbeat via timestamp als logs (detectar contenidor penjat).
+- Execució correcta de l'script de neteja cada 24h.
+
+---
+
+## FAQ tècnic
+
+- **Múltiples escàners alimentant una instància:** Sí, suportat.
+- **Emmagatzematge en xarxa (NAS):** Sí, sempre que Dosense hi pugui accedir via filesystem.
+- **Requisits d'IOPS:** Sense requisits específics.
+- **Mapeig de volums:** Lliure via docker-compose; cada volum es pot mapejar a un disc diferent.
+- **Cicle de vida de MongoDB:** A càrrec de l'hospital. EOL i actualitzacions no entren als releases de Duke. Actualitzar MongoDB no tomba el pipeline d'anàlisi.
+
+---
+
+## Q&A amb Duke — Ronda 1
+
+<DecisionLog
+  title="Primera ronda de preguntes (IT/DSI HCPB → Duke)"
+  entries={[
+    { q: "MongoDB deployment (dins/fora del contenidor)?", a: "Poden posar MongoDB al contenidor i la base de dades al filesystem de Linux. (Matisat a la ronda 2: a la pràctica va externa, en hardware.)" },
+    { q: "Llicència de MongoDB?", a: "Usen Community Edition." },
+    { q: "Mapeig de volums a discs separats?", a: "No hi ha rutes fixes; es pot mapejar on es vulgui amb el docker-compose." },
+    { q: "Host OS SUSE (SLES)?", a: "No ho han validat formalment en SLES. El paquet és basat en contenidors; el host principalment necessita Docker Engine / Docker Compose, bind-mounted storage, host networking i memòria compartida. No esperen dependències de features d'Ubuntu o RHEL." },
+    { q: "Direcció del flux DICOM?", a: "Dosense vigila un arbre de directoris; usen dcm4chee per rebre estudis i col·locar-los en l'estructura year/month/day/Study/series." },
+    { q: "Accés a internet?", a: "No. A Duke estan air-gapped." },
+    { q: "Límit del buffer si el servei cau?", a: "Sense límit excepte l'espai en disc." },
+    { q: "Rollback?", a: "Sí, es pot romandre en una versió anterior." },
+    { q: "Matching XCAT / dependències externes?", a: "No; tot corre dins del contenidor." },
+    { q: "Cicle de vida de MongoDB?", a: "Hi va haver una versió de MongoDB amb breaking changes i no ho repetiran." },
+  ]}
+/>
+
+---
+
+## Q&A amb Duke — Ronda 2
+
+<DecisionLog
+  title="Segona ronda de preguntes (follow-up)"
+  entries={[
+    { q: "Dosense és un node DICOM?", a: "Correcte, no ho és. Vigila un directori del filesystem. Duke proporciona una imatge Docker de dcm4chee que actua com a estació DICOM i col·loca els estudis al directori arrel (a Duke: /data/dicom_storage/2026/07/07)." },
+    { q: "El receptor ve inclòs?", a: "Seria un altre contenidor; Duke el proporciona i també està disponible públicament." },
+    { q: "C-STORE multi-destí sense tocar el PACS?", a: "És l'enfocament usat a MD Anderson Cancer Center (Houston, University of Texas)." },
+    { q: "Dades al final del pilot?", a: "No hi haurà dades al contenidor. Tots els estudis s'esborren per regla, i s'ha d'eliminar la base de dades MongoDB (externa al contenidor, al filesystem)." },
+    { q: "Mecanisme de sortida dels resultats?", a: "Col·lecció de fitxers CSV revisables, enviats per email a EuroSafe o pujats a Dropbox/Google Drive." },
+    { q: "Accés a internet un cop desplegat?", a: "No es requereix internet; a Duke i MD Anderson estan completament air-gapped." },
+    { q: "Cicle de vida de MongoDB (ubicació)?", a: "A Duke i MD Anderson està instal·lada al hardware, no en contenidor. MongoDB Community publica un contenidor Docker que podria ser la millor manera de distribuir-la." },
+  ]}
+/>
+
+---
+
+## Riscos operatius
+
+<SpecTable
+  title="Matriu de riscos"
+  headers={["Risc", "Impacte", "Estat"]}
+  rows={[
+    ["Espai en disc del buffer d'entrada", "Alt — sense límit; pot omplir el disc", "Obert"],
+    ["Host networking sense definir", "Mig — impacte en disseny de firewall", "Pendent seguretat"],
+    ["SLES no validat per Duke", "Baix — només requereix Docker Engine/Compose", "Pendent test"],
+    ["Cicle de vida MongoDB és de l'hospital", "Mig — EOL i actualitzacions no entren als releases", "Obert"],
+    ["Canal sortida manual (Dropbox/Drive)", "Baix — pot xocar amb política DPO", "Preferible email"],
+  ]}
+/>
+
+---
+
+## Pròxims passos
+
+1. Decidir on plantar MongoDB (hardware vs contenidor Community propi).
+2. Contactar seguretat de xarxa per l'ús de host networking.
+3. Confirmar amb el DPO el canal de sortida dels CSV.
+4. Sol·licitar la VM (6 vCPU / 64 GB / 600–750 GB, 4 discs) a virtualització.
+5. Provar el desplegament dels 3 contenidors sobre SLES en test.
+6. Configurar el destí C-STORE addicional a les modalitats CT.
+
+---
+
+<Accordion title="Fonament científic (opcional)">
+
+### Cadena d'evidència científica
+
+El projecte se sustenta en una cadena de 10 papers desenvolupada al llarg de 14 anys pel grup de Duke University (Samei, Ding et al.):
+
+**1. Monitorització de dosi automatitzada (Christianson et al., 2012)**
+Primer programa automatitzat de monitoratge de dosi CT específic per mida. Servidor dosimètric independent, OCR de dose reports, càlcul de diàmetre del pacient des de scouts, i dosi efectiva ajustada per mida (ED_adj). 6,351 estudis CT en 1 mes. L'ajust per mida modifica la dosi fins a un 44%. Diferència entre institucions fins a 59%.
+
+**2. Soroll automatitzat en CT clínic (Christianson et al., 2015)**
+Mètode automatitzat per mesurar soroll: segmentació de teixit tou, mapa de SD amb kernel 6 mm, moda de l'histograma = "global noise level". 0.05 s/imatge. Validat amb phantom (error 3.4%) i observadors (error 4.7%, menor que variabilitat intra-observador). 2,358 pacients mostren variabilitat de soroll entre escàners del 15-35%.
+
+**3. Resolució espacial patient-specific (Sanders et al., 2016)**
+Tècnica automatitzada de resolució des d'imatges clíniques. Segmentació multi-llindar, malla tetraèdrica de superfície, mesurament d'ESF a la interfície pell-aire, Resolution Index (RI) anàleg a MTF. Detecta dependència radial de la resolució i variabilitat clínica no capturada per phantoms.
+
+**4. Índex de detectabilitat in vivo (Smith, Solomon & Samei, 2017)**
+Pedra angular metodològica. Model observador NPW en domini de Fourier combinant MTF patient-specific + global noise level + NPS de phantom escalat. Validat contra 16 lectors, >20,000 trials 2AFC, lesions hepàtiques inserides. d' correlaciona amb detecció humana (R²=0.71-0.81). Supera soroll sol com a predictor.
+
+**5. Validació amb preferències de radiòlegs (Cheng et al., 2019)**
+472 sèries CT, 7 radiòlegs. Acord algorítmic vs. observador: clarity = 1.00 (Spearman). Llindars acceptables: noise 17.8-32.6 HU, clarity 0.47-0.52. Base per als Quality Reference Levels.
+
+**6. Validació en casos clínics reals (Cheng et al., 2020)**
+51 pacients, 260 lesions hepàtiques reals, 8 condicions d'imatge. Correlació d' efectiu vs. ranking observador: Rho = 0.94. Supera àmpliament noise, CNR i MTF aïllats.
+
+**7. Dosi d'òrgan patient-informed (Fu et al., 2021)**
+1,048 pacients, biblioteca XCAT expandida (58 adults, 56 pediàtrics, 5 embarassades). Matching automàtic de phantoms, h-factors precalculats per Monte Carlo. ED_DLP sobreestima un 24% en AP (rang fins a +235%). Justifica l'enfocament patient-informed.
+
+**8. Monitorització pediàtrica (Lacy et al., 2021)**
+507 CT pediàtrics. Primera aplicació completa del framework d'+dosi a gran escala. Proposa Quality Reference Levels (QRL). Canvis reals de protocol informats pel sistema (reducció de kV).
+
+**9. Simulació de soroll image-based (Alsaihati et al., 2025)**
+Eina genèrica d'addició de soroll per simular dosis reduïdes sense reescanejar. 8 passos (estimació NPS, forward-projection, addició soroll, back-projection, filtratge). Error magnitud soroll: 3.3-4.6%. Permet avaluar reducció de dosi quan es troben outliers d'alta qualitat.
+
+**10. Framework d'intervals de predicció (Zhang et al., 2026, en revisió)**
+6,726 sèries, 10 models d'escàner. Models multivariable de log(d') amb intervals de predicció al 95%. R² = 0.858 (AP), 0.921 (chest). La dosi sola explica només el 15-7% de la variància. Outliers de baixa qualitat: artefactes metàl·lics, FOV gran, off-centering. Outliers d'alta qualitat: potencial de reducció de dosi. Aquest és el marc operatiu que es desplegarà via Dosense.
+
+</Accordion>

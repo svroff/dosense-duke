@@ -1,0 +1,33 @@
+---
+/**
+ * Callout/Note box component for MDX content.
+ * Variants: info (cyan), warning (yellow), danger (red), success (green), note (purple).
+ */
+interface Props {
+  type?: "info" | "warning" | "danger" | "success" | "note";
+  title?: string;
+}
+
+const { type = "info", title } = Astro.props;
+
+const styles: Record<string, { border: string; bg: string; icon: string; titleColor: string }> = {
+  info: { border: "border-cyan", bg: "bg-cyan/5", icon: "ℹ", titleColor: "text-cyan" },
+  warning: { border: "border-yellow", bg: "bg-yellow/5", icon: "⚠", titleColor: "text-yellow" },
+  danger: { border: "border-red", bg: "bg-red/5", icon: "✖", titleColor: "text-red" },
+  success: { border: "border-green", bg: "bg-green/5", icon: "✓", titleColor: "text-green" },
+  note: { border: "border-purple", bg: "bg-purple/5", icon: "✎", titleColor: "text-purple" },
+};
+
+const s = styles[type];
+---
+
+<div class={`my-4 rounded-lg border-l-4 ${s.border} ${s.bg} p-4`}>
+  {title && (
+    <p class={`font-display font-semibold ${s.titleColor} mb-1 flex items-center gap-2`}>
+      <span>{s.icon}</span> {title}
+    </p>
+  )}
+  <div class="text-text/90 text-sm leading-relaxed">
+    <slot />
+  </div>
+</div>

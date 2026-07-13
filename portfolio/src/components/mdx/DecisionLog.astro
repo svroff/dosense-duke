@@ -1,0 +1,29 @@
+---
+/**
+ * Decision-log / Q&A component.
+ * Renders a list of question/answer pairs in a clear, scannable format.
+ */
+interface Props {
+  title: string;
+  entries: { q: string; a: string }[];
+}
+
+const { title, entries } = Astro.props;
+---
+
+<div class="my-6 rounded-lg border border-border bg-surface/30 overflow-hidden">
+  <div class="px-4 py-3 bg-surface border-b border-border">
+    <h4 class="font-mono text-sm text-yellow flex items-center gap-2">
+      <span>📋</span> {title}
+    </h4>
+  </div>
+  <div class="divide-y divide-border/50">
+    {entries.map((entry, i) => (
+      <div class="px-4 py-3">
+        <p class="font-mono text-xs text-text-muted mb-1">Q{i + 1}</p>
+        <p class="text-sm font-semibold text-cyan mb-2">{entry.q}</p>
+        <p class="text-sm text-text/85 leading-relaxed">{entry.a}</p>
+      </div>
+    ))}
+  </div>
+</div>

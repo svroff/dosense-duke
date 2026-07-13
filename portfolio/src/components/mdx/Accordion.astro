@@ -1,0 +1,22 @@
+---
+/**
+ * Collapsible/accordion component. Collapsed by default.
+ * Uses native <details> element — zero JS required.
+ */
+interface Props {
+  title: string;
+  open?: boolean;
+}
+
+const { title, open = false } = Astro.props;
+---
+
+<details class="my-6 group rounded-lg border border-border bg-surface/20 overflow-hidden" open={open}>
+  <summary class="cursor-pointer px-4 py-3 bg-surface hover:bg-surface/80 transition-colors font-display font-semibold text-sm text-purple flex items-center gap-2 select-none">
+    <span class="transition-transform group-open:rotate-90">▶</span>
+    {title}
+  </summary>
+  <div class="px-4 py-4 text-sm leading-relaxed border-t border-border/50">
+    <slot />
+  </div>
+</details>
