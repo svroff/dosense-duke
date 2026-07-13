@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   site: "https://svroff.github.io",
-  base: "/dosense-duke",
+  base: "/dosense-duke/",
   integrations: [mdx(), react()],
   vite: {
     plugins: [tailwindcss()],
