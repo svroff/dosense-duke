@@ -22,5 +22,5 @@ Thumbs.db
 # Astro
 .astro/
 
-# npm
-package-lock.json
+# Design handoff assets (not part of the site's source)
+/Frontend design request.zip

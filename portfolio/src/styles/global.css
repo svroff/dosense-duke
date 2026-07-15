@@ -219,16 +219,3 @@ code:not(pre code) {
   transform: translateY(-2px);
 }
 
-/* Sidebar table-of-contents links */
-.toc a {
-  display: block;
-  padding: 6px 0 6px 14px;
-  border-left: 2px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: 13px;
-  transition: color 0.2s, border-color 0.2s;
-}
-.toc a:hover {
-  color: var(--color-amber);
-  border-left-color: var(--color-amber);
-}

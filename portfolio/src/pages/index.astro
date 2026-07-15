@@ -3,8 +3,8 @@
  * Home page — hero, portfolio-wide stats strip, and the project grid
  * (one featured card per project + a placeholder for what's next).
  */
-import BaseLayout from "../layouts/BaseLayout.astro";
-import StatusBadge from "../components/mdx/StatusBadge.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import StatusBadge from "@components/mdx/StatusBadge.astro";
 import { getCollection } from "astro:content";
 
 const projects = await getCollection("projects");

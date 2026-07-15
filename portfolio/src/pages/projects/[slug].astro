@@ -4,7 +4,7 @@
  * Components are imported directly inside the MDX files themselves.
  */
 import { getCollection, render } from "astro:content";
-import ProjectLayout from "../../layouts/ProjectLayout.astro";
+import ProjectLayout from "@layouts/ProjectLayout.astro";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");

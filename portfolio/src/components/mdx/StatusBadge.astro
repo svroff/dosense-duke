@@ -2,8 +2,10 @@
 /**
  * Status badge for project cards and detail pages.
  */
+import type { ProjectStatus } from "@/content.config";
+
 interface Props {
-  status: "planificació" | "desplegament" | "producció" | "completat" | "arxivat";
+  status: ProjectStatus;
 }
 
 const { status } = Astro.props;

@@ -3,6 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Portfolio de projectes d'infraestructura PACS clínica",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

@@ -3,13 +3,14 @@
  * Layout for individual project detail pages.
  * Renders a sidebar TOC with scroll-spy, project metadata, and the MDX content body.
  */
-import BaseLayout from "./BaseLayout.astro";
-import StatusBadge from "../components/mdx/StatusBadge.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import StatusBadge from "@components/mdx/StatusBadge.astro";
+import type { ProjectStatus } from "@/content.config";
 
 interface Props {
   title: string;
   summary: string;
-  status: "planificació" | "desplegament" | "producció" | "completat" | "arxivat";
+  status: ProjectStatus;
   dateUpdated: string;
   techStack: string[];
   tags: string[];
