@@ -1,6 +1,6 @@
-# PACS Portfolio — Infraestructura d'Imatge Mèdica Clínica
+# DSI · PACS — Portfolio d'Infraestructura d'Imatge Mèdica Clínica
 
-Portfolio estàtic de projectes d'infraestructura PACS. Cada projecte documenta l'arquitectura, les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre com es va construir.
+Portfolio estàtic de projectes d'infraestructura PACS del DSI. Cada projecte documenta l'arquitectura, les decisions tècniques i els trade-offs perquè un altre sysadmin pugui aprendre com es va construir. **Dosense** és el primer projecte documentat.
 
 ## Requisits
 

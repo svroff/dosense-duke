@@ -19,7 +19,7 @@ const { title, description = "Portfolio de projectes d'infraestructura PACS clí
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <title>{title} — PACS Portfolio</title>
+    <title>{title} — DSI · PACS</title>
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,14 +32,14 @@ const { title, description = "Portfolio de projectes d'infraestructura PACS clí
   <body class="min-h-screen bg-bg text-text antialiased">
     <header class="sticky top-0 z-50 border-b border-border bg-bg/82 backdrop-blur-md">
       <nav class="mx-auto flex max-w-[1200px] items-center justify-between px-10 py-4">
-        <a href={import.meta.env.BASE_URL} class="flex items-center gap-2.5 text-amber">
+        <a
+          href={import.meta.env.BASE_URL}
+          class="flex items-center gap-2.5 text-amber -ml-3 px-3 py-1.5 rounded-full transition-shadow duration-300 hover:shadow-[0_0_20px_-4px_var(--color-amber)]"
+        >
           <span class="w-2.5 h-2.5 rounded-full bg-amber shadow-[0_0_14px_-1px_var(--color-amber)]"></span>
-          <span class="font-mono text-sm font-semibold tracking-[0.04em]">~/pacs-portfolio</span>
+          <span class="font-mono text-sm font-semibold tracking-[0.04em]">~/dsi-pacs</span>
         </a>
         <div class="flex items-center gap-6 text-sm">
-          <a href={import.meta.env.BASE_URL} class="text-text-muted hover:text-amber transition-colors">Projectes</a>
-          <a href={`${import.meta.env.BASE_URL}projects/dosense`} class="text-text-muted hover:text-amber transition-colors">Dosense</a>
-          <a href={`${import.meta.env.BASE_URL}monitor`} class="text-text-muted hover:text-amber transition-colors">Monitor en viu ↗</a>
           <a
             href="https://github.com/svroff/dosense-duke"
             target="_blank"

@@ -11,11 +11,14 @@ const projects = await getCollection("projects");
 // Sort by dateUpdated descending
 projects.sort((a, b) => b.data.dateUpdated.localeCompare(a.data.dateUpdated));
 
+// Portfolio-wide stats — derived from the project collection itself, so they
+// stay correct as projects are added instead of being hardcoded per-project
+// numbers (those belong on each project's own page, not here).
+const techCount = new Set(projects.flatMap((p) => p.data.techStack)).size;
+
 const stats = [
   { value: String(projects.length), label: projects.length === 1 ? "projecte actiu" : "projectes actius" },
-  { value: "3", label: "contenidors" },
-  { value: "200", label: "estudis CT / dia" },
-  { value: "Fase 1", label: "EuroSafe × Duke", accent: true },
+  { value: String(techCount), label: techCount === 1 ? "tecnologia documentada" : "tecnologies documentades" },
 ];
 ---
 
@@ -27,7 +30,7 @@ const stats = [
         Portfolio d'infraestructura · Hospital Clínic de Barcelona
       </div>
       <h1 class="font-display font-bold text-[58px] leading-[1.1] tracking-[-0.01em]">
-        Infraestructura <span class="text-amber">PACS</span> clínica
+        Projectes <span class="text-amber">DSI</span> - HCPB
       </h1>
       <p class="text-text-muted text-lg leading-relaxed mt-5">
         Projectes d'infraestructura d'imatge mèdica documentats de punta a punta. Cada projecte recull
